@@ -1,0 +1,1555 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Brothers Studio – Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#060608;--c1:#0B0C12;--c2:#10121A;--c3:#161922;--c4:#1C1F2E;--c5:#22263A;
+  --b1:#1F2336;--b2:#282D46;--b3:#363D60;
+  --t1:#F2F4FF;--t2:#9DA5CC;--t3:#5A6290;--t4:#2C3154;
+  --in:#6366F1;--in2:#818CF8;--ing:rgba(99,102,241,.13);--inb:rgba(99,102,241,.3);
+  --em:#10B981;--em2:#34D399;--emg:rgba(16,185,129,.11);--emb:rgba(16,185,129,.24);
+  --ro:#F43F5E;--rog:rgba(244,63,94,.11);--rob:rgba(244,63,94,.24);
+  --am:#F59E0B;--amg:rgba(245,158,11,.11);--amb:rgba(245,158,11,.24);
+  --sk:#0EA5E9;--skg:rgba(14,165,233,.11);--skb:rgba(14,165,233,.24);
+  --vi:#8B5CF6;--vig:rgba(139,92,246,.12);--vib:rgba(139,92,246,.26);
+  --sw:268px;
+}
+html,body{font-family:'Cairo','Poppins',sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;overflow-x:hidden}
+
+/* ── SPLASH ── */
+#splash{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:18px;transition:opacity .6s .4s,visibility .6s .4s}
+#splash.hide{opacity:0;visibility:hidden;pointer-events:none}
+.sp-glow{position:absolute;border-radius:50%;filter:blur(90px);opacity:.18;pointer-events:none}
+.sp-g1{width:500px;height:500px;background:radial-gradient(#6366F1,transparent);top:-120px;right:-120px;animation:gFloat 6s ease-in-out infinite alternate}
+.sp-g2{width:380px;height:380px;background:radial-gradient(#10B981,transparent);bottom:-80px;left:-80px;animation:gFloat 6s ease-in-out 2s infinite alternate}
+@keyframes gFloat{from{transform:scale(1)}to{transform:scale(1.25)}}
+.sp-box{position:relative;background:rgba(16,18,26,.85);backdrop-filter:blur(28px);border:1px solid var(--b2);border-radius:24px;padding:44px 40px;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,.7);animation:spPop .6s cubic-bezier(.34,1.56,.64,1)}
+@keyframes spPop{from{transform:scale(.4) rotate(-10deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+.sp-logo-ring{width:100px;height:100px;border-radius:26px;background:linear-gradient(135deg,rgba(99,102,241,.2),rgba(139,92,246,.15));border:1px solid var(--inb);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;box-shadow:0 0 40px rgba(99,102,241,.25)}
+.sp-logo{width:72px;height:72px;object-fit:contain}
+.sp-name{font-size:22px;font-weight:900;letter-spacing:2px;font-family:'Poppins';background:linear-gradient(135deg,var(--t1),var(--in2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px}
+.sp-tag{font-size:9.5px;font-family:'Poppins';letter-spacing:3.5px;color:var(--t3);text-transform:uppercase;margin-bottom:22px}
+.sp-dots{display:flex;gap:7px;justify-content:center}
+.sd{width:8px;height:8px;border-radius:50%;animation:sdP 1.5s ease-in-out infinite}
+.sd:nth-child(1){background:var(--in);animation-delay:0s}
+.sd:nth-child(2){background:var(--em);animation-delay:.22s}
+.sd:nth-child(3){background:var(--vi);animation-delay:.44s}
+@keyframes sdP{0%,60%,100%{transform:scale(1);opacity:.5}30%{transform:scale(1.8);opacity:1}}
+
+/* ── LOGIN ── */
+#login{display:flex;align-items:center;justify-content:center;min-height:100vh;background:radial-gradient(ellipse at 20% 15%,rgba(99,102,241,.07),transparent 55%),radial-gradient(ellipse at 85% 85%,rgba(16,185,129,.05),transparent 50%)}
+.lc{background:rgba(11,12,18,.94);backdrop-filter:blur(36px);border:1px solid var(--b2);border-radius:26px;padding:48px 42px;width:100%;max-width:430px;text-align:center;box-shadow:0 28px 90px rgba(0,0,0,.7);animation:fadeUp .5s ease}
+@keyframes fadeUp{from{transform:translateY(24px);opacity:0}to{transform:translateY(0);opacity:1}}
+.lc-logo-box{width:88px;height:88px;border-radius:22px;background:linear-gradient(135deg,rgba(99,102,241,.18),rgba(139,92,246,.12));border:1px solid var(--inb);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;box-shadow:0 0 30px rgba(99,102,241,.2);overflow:hidden}
+.lc-logo{width:64px;height:64px;object-fit:contain}
+.lc-title{font-size:24px;font-weight:900;background:linear-gradient(135deg,var(--t1),var(--in2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:3px}
+.lc-sub{font-size:9.5px;font-family:'Poppins';letter-spacing:2.5px;color:var(--t3);text-transform:uppercase;margin-bottom:22px}
+.role-chip{display:inline-flex;align-items:center;gap:6px;background:var(--ing);border:1px solid var(--inb);color:var(--in2);padding:6px 18px;border-radius:100px;font-size:11.5px;font-weight:700;margin-bottom:26px}
+.F{width:100%;padding:13px 16px;background:rgba(6,6,8,.85);border:1px solid var(--b2);border-radius:12px;color:var(--t1);font-family:'Cairo';font-size:13.5px;outline:none;transition:.22s}
+.F:focus{border-color:var(--in);box-shadow:0 0 0 3px var(--ing)}
+.F.pass-f{font-size:28px;font-weight:800;letter-spacing:14px;text-align:center;font-family:'Poppins';padding:15px}
+select.F{cursor:pointer}
+select.F option{background:var(--c3)}
+textarea.F{resize:vertical;min-height:76px}
+.Fl{display:block;text-align:right;font-size:11.5px;font-weight:700;color:var(--t3);margin-bottom:5px;margin-top:13px;letter-spacing:.3px}
+.Ferr{background:var(--rog);border:1px solid var(--rob);color:#FDA4B0;border-radius:12px;padding:10px 14px;font-size:12.5px;margin-bottom:14px;display:none;animation:shake .4s}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:11px 22px;border:none;border-radius:12px;font-family:'Cairo';font-weight:700;font-size:13px;cursor:pointer;transition:.2s;white-space:nowrap;letter-spacing:.2px}
+.btn:hover{transform:translateY(-1px)}
+.btn:active{transform:scale(.97)}
+.btn-p{background:linear-gradient(135deg,var(--in),#7C3AED);color:#fff;box-shadow:0 4px 18px rgba(99,102,241,.38)}
+.btn-p:hover{box-shadow:0 6px 26px rgba(99,102,241,.52)}
+.btn-e{background:linear-gradient(135deg,var(--em),#059669);color:#fff;box-shadow:0 4px 16px rgba(16,185,129,.3)}
+.btn-r{background:linear-gradient(135deg,var(--ro),#E11D48);color:#fff;box-shadow:0 4px 14px var(--rog)}
+.btn-a{background:linear-gradient(135deg,var(--am),#D97706);color:#0A0600;box-shadow:0 4px 14px var(--amg)}
+.btn-s{background:linear-gradient(135deg,var(--sk),#0284C7);color:#fff}
+.btn-v{background:linear-gradient(135deg,var(--vi),#6D28D9);color:#fff}
+.btn-gh{background:rgba(255,255,255,.05);border:1px solid var(--b2);color:var(--t2)}
+.btn-gh:hover{color:var(--t1);border-color:var(--b3)}
+.btn-wa{background:#128C7E;color:#fff}
+.btn-wa:hover{background:#25D366}
+.btn-sm{padding:7px 15px;font-size:12px;border-radius:9px}
+.btn-xs{padding:4px 10px;font-size:11px;border-radius:7px}
+.btn-fw{width:100%;margin-top:12px}
+.bic{width:32px;height:32px;border-radius:8px;border:1px solid var(--b1);background:rgba(255,255,255,.04);color:var(--t3);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:.2s;font-size:13px;flex-shrink:0}
+.bic:hover{color:var(--t1);border-color:var(--b3)}
+
+/* ── BADGES ── */
+.b{display:inline-flex;align-items:center;gap:3px;padding:3px 11px;border-radius:100px;font-size:10.5px;font-weight:800;white-space:nowrap;letter-spacing:.2px}
+.b-i{background:var(--ing);color:var(--in2);border:1px solid var(--inb)}
+.b-e{background:var(--emg);color:var(--em2);border:1px solid var(--emb)}
+.b-r{background:var(--rog);color:var(--ro);border:1px solid var(--rob)}
+.b-a{background:var(--amg);color:var(--am);border:1px solid var(--amb)}
+.b-s{background:var(--skg);color:var(--sk);border:1px solid var(--skb)}
+.b-v{background:var(--vig);color:var(--vi);border:1px solid var(--vib)}
+.b-n{background:rgba(255,255,255,.05);color:var(--t3);border:1px solid var(--b1)}
+
+/* ── LAYOUT ── */
+#APP{display:none}
+.layout{display:flex;min-height:100vh}
+.sb-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:180;backdrop-filter:blur(2px)}
+.sb-ov.on{display:block}
+
+/* ── SIDEBAR ── */
+.sb{width:var(--sw);flex-shrink:0;background:linear-gradient(180deg,var(--c1) 0%,var(--c2) 100%);border-left:1px solid var(--b1);position:fixed;top:0;right:0;height:100vh;display:flex;flex-direction:column;z-index:200;overflow:hidden;transition:.35s cubic-bezier(.4,0,.2,1)}
+.sb-head{padding:18px 16px 14px;border-bottom:1px solid var(--b1);flex-shrink:0}
+.sb-brand{display:flex;align-items:center;gap:12px}
+.sb-logo-box{width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,var(--ing),var(--vig));border:1px solid var(--inb);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;box-shadow:0 0 16px rgba(99,102,241,.22)}
+.sb-logo-img{width:34px;height:34px;object-fit:contain}
+.sb-brand-name{font-size:14px;font-weight:900;background:linear-gradient(135deg,var(--t1),var(--in2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-brand-tag{font-size:8.5px;font-family:'Poppins';color:var(--in2);letter-spacing:1.5px;font-weight:700;text-transform:uppercase;margin-top:1px}
+.sb-user{padding:12px 16px;border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:11px;flex-shrink:0;background:rgba(255,255,255,.02)}
+.sb-av{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--in),var(--vi));display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;box-shadow:0 2px 10px rgba(99,102,241,.3)}
+.sb-uname{font-size:13px;font-weight:800}
+.sb-urole{font-size:9px;font-family:'Poppins';color:var(--in2);font-weight:600;letter-spacing:.5px;display:flex;align-items:center;gap:4px;margin-top:1px}
+.online-dot{width:6px;height:6px;border-radius:50%;background:var(--em);box-shadow:0 0 6px var(--em);animation:onPulse 2s infinite;flex-shrink:0}
+@keyframes onPulse{0%,100%{opacity:1}50%{opacity:.4}}
+.sb-nav{flex:1;padding:10px 8px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--b2) transparent}
+.sb-nav::-webkit-scrollbar{width:3px}
+.sb-nav::-webkit-scrollbar-thumb{background:var(--b2);border-radius:4px}
+.ns{font-size:9px;font-weight:800;color:var(--t4);letter-spacing:2px;text-transform:uppercase;padding:14px 10px 5px;font-family:'Poppins'}
+.ni{display:flex;align-items:center;gap:10px;padding:10px 11px;border-radius:11px;cursor:pointer;color:var(--t3);font-size:13px;font-weight:600;transition:.17s;margin-bottom:1px;border:1px solid transparent}
+.ni:hover{color:var(--t2);background:rgba(255,255,255,.04)}
+.ni.on{background:var(--ing);border-color:var(--inb);color:var(--t1)}
+.ni.on .ni-ico{color:var(--in2);background:rgba(99,102,241,.18)}
+.ni-danger{color:#F87171}
+.ni-danger:hover{background:var(--rog)}
+.ni-ico{width:29px;height:29px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;background:rgba(255,255,255,.05);transition:.17s}
+.ni-badge{margin-right:auto;background:var(--ro);color:#fff;font-size:8.5px;padding:2px 7px;border-radius:100px;font-weight:900;animation:bPulse 2s infinite}
+@keyframes bPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+.sb-footer{padding:12px 16px;border-top:1px solid var(--b1);font-size:8.5px;color:var(--t4);font-family:'Poppins';text-align:center;line-height:1.9;flex-shrink:0}
+
+/* ── MAIN ── */
+.main{flex:1;margin-right:var(--sw);min-height:100vh;display:flex;flex-direction:column;transition:.35s}
+.topbar{position:sticky;top:0;background:rgba(6,6,8,.97);backdrop-filter:blur(32px);border-bottom:1px solid var(--b1);padding:0 26px;height:62px;display:flex;align-items:center;justify-content:space-between;z-index:100;flex-shrink:0}
+.tb-left{display:flex;align-items:center;gap:13px}
+.burger-btn{display:none;cursor:pointer;width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid var(--b1);align-items:center;justify-content:center;font-size:18px;color:var(--t2)}
+.pg-title{font-size:16px;font-weight:800;display:flex;align-items:center;gap:9px}
+.pg-ico{color:var(--in2)}
+.tb-right{display:flex;align-items:center;gap:11px}
+.tb-time{font-size:11px;font-family:'Poppins';background:var(--c3);border:1px solid var(--b1);padding:5px 12px;border-radius:9px;color:var(--t2)}
+.nb-wrap{position:relative}
+.nb-btn{width:38px;height:38px;border-radius:11px;background:var(--c3);border:1px solid var(--b1);display:flex;align-items:center;justify-content:center;color:var(--t2);font-size:16px;cursor:pointer;transition:.2s}
+.nb-btn:hover{color:var(--t1);border-color:var(--in)}
+.nb-dot{position:absolute;top:2px;right:2px;background:var(--ro);color:#fff;font-size:8px;min-width:17px;height:17px;border-radius:100px;display:flex;align-items:center;justify-content:center;font-weight:900;border:2px solid var(--bg);padding:0 3px;animation:bPulse 2s infinite}
+.np{position:absolute;top:46px;left:0;width:330px;background:var(--c2);border:1px solid var(--b2);border-radius:16px;display:none;overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,.7);z-index:600}
+.np.on{display:block;animation:fadeUp .2s ease}
+.np-hd{padding:14px 16px;border-bottom:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between;font-size:13.5px;font-weight:800}
+.np-acts{display:flex;gap:7px}
+.np-act{font-size:10.5px;font-weight:700;cursor:pointer;padding:3px 9px;border-radius:7px;background:rgba(255,255,255,.05);border:1px solid var(--b1);color:var(--t3);transition:.15s}
+.np-act:hover{color:var(--t1)}
+.np-list{max-height:360px;overflow-y:auto}
+.np-item{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.04);display:flex;gap:10px;align-items:flex-start;cursor:pointer;transition:.15s;position:relative}
+.np-item:hover{background:rgba(255,255,255,.025)}
+.np-item.unread{background:rgba(99,102,241,.05);border-right:2.5px solid var(--in)}
+.np-item.unread .np-msg{color:var(--t1)}
+.np-ic{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.np-msg{font-size:12px;font-weight:700;color:var(--t2);line-height:1.5}
+.np-time{font-size:10px;color:var(--t4);margin-top:2px;font-family:'Poppins'}
+.np-del{position:absolute;top:8px;left:10px;opacity:0;transition:.15s;font-size:11px;color:var(--ro);cursor:pointer;width:23px;height:23px;border-radius:6px;background:var(--rog);display:flex;align-items:center;justify-content:center}
+.np-item:hover .np-del{opacity:1}
+.np-empty{padding:30px;text-align:center;color:var(--t4);font-size:12.5px}
+
+/* ── CONTENT ── */
+.content{padding:24px 26px;flex:1;display:flex;flex-direction:column;gap:20px}
+.view{display:none;flex-direction:column;gap:20px;animation:fadeUp .26s ease}
+.view.on{display:flex}
+
+/* ── CARDS ── */
+.card{background:var(--c2);border:1px solid var(--b1);border-radius:16px;padding:20px 22px}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--b1)}
+.card-title{display:flex;align-items:center;gap:9px;font-size:14.5px;font-weight:800;color:var(--t1)}
+.card-actions{display:flex;gap:8px}
+
+/* ── STATS ── */
+.stats-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+.sc{background:var(--c2);border:1px solid var(--b1);border-radius:16px;padding:18px 16px;display:flex;align-items:center;gap:14px;transition:.22s;position:relative;overflow:hidden;cursor:default}
+.sc::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;transform:scaleX(0);transform-origin:right;transition:.35s;border-radius:0 0 16px 16px}
+.sc:hover{border-color:var(--b2);transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.sc:hover::after{transform:scaleX(1)}
+.sc-i::after{background:linear-gradient(90deg,var(--in),var(--in2))}
+.sc-e::after{background:linear-gradient(90deg,var(--em),var(--em2))}
+.sc-r::after{background:var(--ro)}
+.sc-a::after{background:var(--am)}
+.sc-v::after{background:var(--vi)}
+.sc-s::after{background:var(--sk)}
+.sc-ico{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.ic-i{background:var(--ing);color:var(--in2)}
+.ic-e{background:var(--emg);color:var(--em2)}
+.ic-r{background:var(--rog);color:var(--ro)}
+.ic-a{background:var(--amg);color:var(--am)}
+.ic-v{background:var(--vig);color:var(--vi)}
+.ic-s{background:var(--skg);color:var(--sk)}
+.sc-val{font-size:32px;font-weight:900;line-height:1;font-family:'Poppins'}
+.sc-lbl{font-size:12px;color:var(--t3);margin-top:4px}
+
+/* ── GRIDS ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:15px}
+.fr2{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.fr3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:13px}
+.fw{display:flex;flex-direction:column}
+
+/* ── TABLE ── */
+.tbl{overflow-x:auto;border-radius:12px}
+table{width:100%;border-collapse:collapse}
+th{padding:10px 13px;text-align:right;font-size:10.5px;font-weight:700;color:var(--t4);border-bottom:1px solid var(--b1);text-transform:uppercase;letter-spacing:.8px;white-space:nowrap;background:var(--c3)}
+td{padding:12px 13px;text-align:right;font-size:13px;border-bottom:1px solid rgba(255,255,255,.035)}
+tr:hover td{background:rgba(255,255,255,.015)}
+tr:last-child td{border-bottom:none}
+.tduid{font-family:'Poppins';font-size:11px;color:var(--in2);font-weight:700;letter-spacing:.3px}
+.tdname{font-weight:700;font-size:13.5px}
+
+/* ── FEEDBACK ── */
+.fb{padding:10px 14px;border-radius:11px;font-size:12.5px;margin-top:10px;display:none;animation:fadeUp .3s}
+.fb-ok{background:var(--emg);border:1px solid var(--emb);color:#6EE7B7}
+.fb-err{background:var(--rog);border:1px solid var(--rob);color:#FDA4B0}
+
+/* ── MODAL ── */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.82);backdrop-filter:blur(10px);z-index:1000;display:none;align-items:center;justify-content:center;padding:18px}
+.modal.on{display:flex}
+.mbox{background:var(--c3);border:1px solid var(--b2);border-radius:22px;padding:28px;width:100%;max-width:540px;box-shadow:0 28px 80px rgba(0,0,0,.7);animation:mIn .22s cubic-bezier(.34,1.2,.64,1)}
+@keyframes mIn{from{transform:scale(.93) translateY(12px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+.mtitle{font-size:15px;font-weight:800;display:flex;align-items:center;gap:9px;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid var(--b1)}
+.mactions{display:flex;gap:10px;margin-top:20px;justify-content:flex-end}
+
+/* ── TOAST ── */
+#TC{position:fixed;bottom:22px;left:22px;z-index:9999;display:flex;flex-direction:column-reverse;gap:8px;pointer-events:none}
+.toast{padding:13px 18px;border-radius:14px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:10px;min-width:220px;max-width:340px;pointer-events:all;animation:toastIn .32s cubic-bezier(.34,1.2,.64,1);box-shadow:0 12px 40px rgba(0,0,0,.6);cursor:pointer}
+@keyframes toastIn{from{transform:translateX(-20px) scale(.94);opacity:0}to{transform:translateX(0) scale(1);opacity:1}}
+.t-ok{background:linear-gradient(135deg,rgba(16,185,129,.14),rgba(5,150,105,.08));border:1px solid var(--emb);color:#6EE7B7}
+.t-err{background:linear-gradient(135deg,rgba(244,63,94,.14),rgba(185,18,53,.08));border:1px solid var(--rob);color:#FDA4B0}
+.t-warn{background:linear-gradient(135deg,rgba(245,158,11,.14),rgba(180,83,9,.08));border:1px solid var(--amb);color:#FDE68A}
+.t-info{background:linear-gradient(135deg,rgba(99,102,241,.14),rgba(67,56,202,.08));border:1px solid var(--inb);color:var(--in2)}
+
+/* ── MISC ── */
+.qrw{background:#fff;padding:14px;border-radius:14px;display:inline-block}
+.row-card{background:var(--c3);border:1px solid var(--b1);border-radius:13px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:11px;transition:.17s}
+.row-card:hover{border-color:var(--b2)}
+.rc-info{flex:1;min-width:0}
+.rc-name{font-weight:800;font-size:13.5px}
+.rc-meta{font-size:11.5px;color:var(--t3);margin-top:2px}
+.sbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.si-wrap{position:relative;flex:1;min-width:180px}
+.si-wrap i{position:absolute;top:50%;transform:translateY(-50%);right:13px;color:var(--t4);font-size:13px;pointer-events:none}
+.si{width:100%;padding:9px 38px 9px 14px;background:var(--c3);border:1px solid var(--b1);border-radius:11px;color:var(--t1);font-family:'Cairo';font-size:13px;outline:none;transition:.2s}
+.si:focus{border-color:var(--in)}
+.dz{background:rgba(244,63,94,.04);border:1px solid rgba(244,63,94,.16);border-radius:16px;padding:20px 22px}
+.empty-state{text-align:center;padding:44px 20px;color:var(--t3)}
+.empty-state i{font-size:38px;opacity:.14;display:block;margin-bottom:12px}
+.empty-state p{font-size:13px}
+.feed-row{display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.045)}
+.feed-row:last-child{border-bottom:none}
+.fd{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.fd-i{background:var(--in);box-shadow:0 0 7px var(--in)}
+.fd-e{background:var(--em);box-shadow:0 0 7px var(--em)}
+.fd-r{background:var(--ro);box-shadow:0 0 7px var(--ro)}
+.fd-a{background:var(--am);box-shadow:0 0 7px var(--am)}
+.prog-wrap{background:var(--c4);border-radius:100px;height:6px;overflow:hidden;flex:1}
+.prog-fill{height:100%;border-radius:100px;transition:width .7s ease}
+.s-sec{margin-bottom:26px}
+.s-title{font-size:11.5px;font-weight:800;color:var(--t3);margin-bottom:13px;padding-bottom:9px;border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:7px;letter-spacing:.3px;text-transform:uppercase}
+.divhr{height:1px;background:var(--b1);margin:5px 0}
+
+@media(max-width:1080px){.stats-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:920px){
+  .stats-grid{grid-template-columns:repeat(2,1fr)}.g2,.g3,.fr2,.fr3{grid-template-columns:1fr}
+  .sb{transform:translateX(110%)}.sb.on{transform:translateX(0)}.main{margin-right:0}
+  .burger-btn{display:flex}.content{padding:16px}.topbar{padding:0 16px}
+}
+@media(max-width:560px){.stats-grid{grid-template-columns:1fr 1fr}}
+canvas{max-height:248px}
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash">
+  <div class="sp-glow sp-g1"></div>
+  <div class="sp-glow sp-g2"></div>
+  <div class="sp-box">
+    <div class="sp-logo-ring">
+      <img src="logo.png" class="sp-logo" alt="logo" onerror="this.style.display='none';this.parentNode.innerHTML='<i class=\'fa-solid fa-graduation-cap\' style=\'font-size:36px;color:var(--in2)\'></i>'">
+    </div>
+    <div class="sp-name">BROTHERS STUDIO</div>
+    <div class="sp-tag">Attendance System v2.0</div>
+    <div class="sp-dots"><div class="sd"></div><div class="sd"></div><div class="sd"></div></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="TC"></div>
+
+<!-- LOGIN -->
+<div id="login">
+  <div class="lc">
+    <div class="lc-logo-box">
+      <img src="logo.png" class="lc-logo" alt="logo" onerror="this.style.display='none';this.parentNode.innerHTML='<i class=\'fa-solid fa-graduation-cap\' style=\'font-size:30px;color:var(--in2)\'></i>'">
+    </div>
+    <div class="lc-title">Brothers Studio</div>
+    <div class="lc-sub">Attendance Management System</div>
+    <div style="text-align:center;margin-bottom:24px"><span class="role-chip"><i class="fa-solid fa-user-shield"></i> لوحة الإدارة</span></div>
+    <div id="lerr" class="Ferr"><i class="fa-solid fa-circle-xmark"></i> كلمة المرور غير صحيحة</div>
+    <input type="password" id="lpass" class="F pass-f" placeholder="••••" maxlength="20" autocomplete="off">
+    <button class="btn btn-p btn-fw" onclick="doLogin()"><i class="fa-solid fa-arrow-right-to-bracket"></i> دخول</button>
+  </div>
+</div>
+
+<!-- APP SHELL -->
+<div id="APP">
+  <div class="sb-ov" id="sbov" onclick="closeSB()"></div>
+  <div class="layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sb" id="SB">
+      <div class="sb-head">
+        <div class="sb-brand">
+          <div class="sb-logo-box">
+            <img src="logo.png" class="sb-logo-img" alt="logo" onerror="this.style.display='none';this.parentNode.innerHTML='<i class=\'fa-solid fa-graduation-cap\' style=\'font-size:18px;color:var(--in2)\'></i>'">
+          </div>
+          <div><div class="sb-brand-name">Brothers Studio</div><div class="sb-brand-tag">Admin Panel</div></div>
+        </div>
+      </div>
+      <div class="sb-user">
+        <div class="sb-av"><i class="fa-solid fa-user-shield"></i></div>
+        <div>
+          <div class="sb-uname">المدير</div>
+          <div class="sb-urole"><div class="online-dot"></div>Administrator</div>
+        </div>
+      </div>
+      <nav class="sb-nav">
+        <div class="ns">رئيسي</div>
+        <div class="ni on" data-v="v-db" onclick="showV('v-db',this)"><div class="ni-ico"><i class="fa-solid fa-gauge-high"></i></div>لوحة التحكم</div>
+        <div class="ns">إدارة النظام</div>
+        <div class="ni" data-v="v-centers" onclick="showV('v-centers',this)"><div class="ni-ico"><i class="fa-solid fa-building"></i></div>السناتر</div>
+        <div class="ni" data-v="v-groups" onclick="showV('v-groups',this)"><div class="ni-ico"><i class="fa-solid fa-layer-group"></i></div>المجموعات</div>
+        <div class="ni" data-v="v-assistants" onclick="showV('v-assistants',this)"><div class="ni-ico"><i class="fa-solid fa-users-gear"></i></div>المساعدون</div>
+        <div class="ni" data-v="v-students" onclick="showV('v-students',this)"><div class="ni-ico"><i class="fa-solid fa-graduation-cap"></i></div>الطلاب</div>
+        <div class="ni" data-v="v-wallet" onclick="showV('v-wallet',this)"><div class="ni-ico"><i class="fa-solid fa-wallet"></i></div>المحافظ والرصيد</div>
+        <div class="ns">الطلبات</div>
+        <div class="ni" data-v="v-voids" onclick="showV('v-voids',this)"><div class="ni-ico"><i class="fa-solid fa-shield-exclamation"></i></div>طلبات Void<span class="ni-badge" id="voidBadge" style="display:none">0</span></div>
+        <div class="ni" data-v="v-recharge" onclick="showV('v-recharge',this)"><div class="ni-ico"><i class="fa-solid fa-battery-full"></i></div>طلبات التجديد<span class="ni-badge" id="rchBadge" style="display:none">0</span></div>
+        <div class="ns">المتابعة</div>
+        <div class="ni" data-v="v-sessions" onclick="showV('v-sessions',this)"><div class="ni-ico"><i class="fa-solid fa-chalkboard-user"></i></div>الجلسات</div>
+        <div class="ni" data-v="v-wa" onclick="showV('v-wa',this)"><div class="ni-ico"><i class="fa-brands fa-whatsapp"></i></div>واتساب والمتابعة</div>
+        <div class="ni" data-v="v-reports" onclick="showV('v-reports',this)"><div class="ni-ico"><i class="fa-solid fa-chart-bar"></i></div>التقارير</div>
+        <div class="ns">النظام</div>
+        <div class="ni" data-v="v-logs" onclick="showV('v-logs',this)"><div class="ni-ico"><i class="fa-solid fa-scroll"></i></div>سجل النظام</div>
+        <div class="ni" data-v="v-settings" onclick="showV('v-settings',this)"><div class="ni-ico"><i class="fa-solid fa-sliders"></i></div>الإعدادات</div>
+        <div class="ni" data-v="v-backup" onclick="showV('v-backup',this)"><div class="ni-ico"><i class="fa-solid fa-database"></i></div>نسخ احتياطي</div>
+        <div class="divhr"></div>
+        <div class="ni ni-danger" onclick="doLogout()"><div class="ni-ico"><i class="fa-solid fa-right-from-bracket"></i></div>تسجيل الخروج</div>
+      </nav>
+      <div class="sb-footer">BROTHERS STUDIO ATTENDANCE SYSTEM<br>V2.0 • DEVELOPED BY ZEYAD ELDERY<br>POWERED BY BROTHERS STUDIO</div>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="main" id="mainArea">
+      <header class="topbar">
+        <div class="tb-left">
+          <div class="burger-btn" onclick="toggleSB()"><i class="fa-solid fa-bars"></i></div>
+          <div class="pg-title"><i class="fa-solid fa-gauge-high pg-ico" id="pgIco"></i><span id="pgTitle">لوحة التحكم</span></div>
+        </div>
+        <div class="tb-right">
+          <div class="tb-time" id="tbTime"></div>
+          <div class="nb-wrap">
+            <div class="nb-btn" onclick="toggleNP()"><i class="fa-solid fa-bell"></i><span class="nb-dot" id="nbCount" style="display:none">0</span></div>
+            <div class="np" id="NP">
+              <div class="np-hd"><span>الإشعارات</span>
+                <div class="np-acts"><span class="np-act" onclick="markAllRead()">قراءة الكل</span><span class="np-act" style="color:var(--ro)" onclick="deleteAllNotifs()">حذف الكل</span></div>
+              </div>
+              <div class="np-list" id="npList"><div class="np-empty"><i class="fa-regular fa-bell-slash" style="font-size:26px;display:block;margin-bottom:10px;opacity:.25"></i>لا توجد إشعارات</div></div>
+            </div>
+          </div>
+          <span class="b b-i"><i class="fa-solid fa-shield-halved"></i> Admin</span>
+        </div>
+      </header>
+
+      <div class="content">
+
+        <!-- ═══ DASHBOARD ═══ -->
+        <div class="view on" id="v-db">
+          <div class="stats-grid">
+            <div class="sc sc-i"><div class="sc-ico ic-i"><i class="fa-solid fa-graduation-cap"></i></div><div><div class="sc-val" id="dSt">0</div><div class="sc-lbl">الطلاب</div></div></div>
+            <div class="sc sc-e"><div class="sc-ico ic-e"><i class="fa-solid fa-user-check"></i></div><div><div class="sc-val" id="dPr">0</div><div class="sc-lbl">حضور اليوم</div></div></div>
+            <div class="sc sc-v"><div class="sc-ico ic-v"><i class="fa-solid fa-layer-group"></i></div><div><div class="sc-val" id="dGr">0</div><div class="sc-lbl">المجموعات</div></div></div>
+            <div class="sc sc-a"><div class="sc-ico ic-a"><i class="fa-solid fa-users-gear"></i></div><div><div class="sc-val" id="dAs">0</div><div class="sc-lbl">المساعدون</div></div></div>
+            <div class="sc sc-r"><div class="sc-ico ic-r"><i class="fa-solid fa-triangle-exclamation"></i></div><div><div class="sc-val" id="dLw">0</div><div class="sc-lbl">رصيد منخفض</div></div></div>
+          </div>
+          <div class="g2">
+            <div class="card"><div class="card-header"><div class="card-title"><i class="fa-solid fa-chart-line" style="color:var(--in2)"></i>الحضور الأسبوعي</div></div><canvas id="wChart" height="210"></canvas></div>
+            <div class="card"><div class="card-header"><div class="card-title"><i class="fa-solid fa-chart-pie" style="color:var(--em2)"></i>توزيع الطلاب</div></div><canvas id="gChart" height="210"></canvas></div>
+          </div>
+          <div class="g2">
+            <div class="card"><div class="card-header"><div class="card-title"><i class="fa-solid fa-circle-dot" style="color:var(--em2)"></i>جلسات مفتوحة الآن</div></div><div id="liveSessions"></div></div>
+            <div class="card"><div class="card-header"><div class="card-title"><i class="fa-solid fa-clock-rotate-left" style="color:var(--am)"></i>آخر العمليات</div></div><div id="feedList"></div></div>
+          </div>
+        </div>
+
+        <!-- ═══ CENTERS ═══ -->
+        <div class="view" id="v-centers">
+          <div class="card">
+            <div class="card-header"><div class="card-title"><i class="fa-solid fa-building-circle-arrow-right" style="color:var(--sk)"></i>إضافة سنتر</div></div>
+            <div class="fr2">
+              <div class="fw"><label class="Fl">اسم السنتر *</label><input id="cn_name" class="F" placeholder="مثال: Brothers الرئيسي"></div>
+              <div class="fw"><label class="Fl">العنوان</label><input id="cn_addr" class="F" placeholder="شارع، مدينة"></div>
+              <div class="fw"><label class="Fl">رقم الهاتف</label><input id="cn_phone" class="F" placeholder="01xxxxxxxxx"></div>
+              <div class="fw"><label class="Fl">ملاحظات</label><input id="cn_note" class="F" placeholder="اختياري"></div>
+            </div>
+            <button class="btn btn-p btn-sm" style="margin-top:14px" onclick="addCenter()"><i class="fa-solid fa-plus"></i> إضافة السنتر</button>
+            <div id="cnFb" class="fb"></div>
+          </div>
+          <div class="card"><div class="card-header"><div class="card-title"><i class="fa-solid fa-building" style="color:var(--sk)"></i>السناتر<span class="b b-s" id="cnCnt" style="margin-right:8px">0</span></div></div><div id="cnList"></div></div>
+        </div>
+
+        <!-- ═══ GROUPS ═══ -->
+        <div class="view" id="v-groups">
+          <div class="card">
+            <div class="card-header"><div class="card-title"><i class="fa-solid fa-circle-plus"></i>إضافة مجموعة</div></div>
+            <div class="fr3">
+              <div class="fw"><label class="Fl">اسم المجموعة *</label><input id="gp_title" class="F" placeholder="كيمياء 3 ثانوي — أ"></div>
+              <div class="fw"><label class="Fl">المادة *</label><select id="gp_subj" class="F"><option value="">-- اختر --</option><option>علوم متكاملة</option><option>كيمياء</option><option>فيزياء</option><option>أحياء</option><option>رياضيات</option><option>لغة عربية</option><option>لغة إنجليزية</option><option>تاريخ</option><option>جغرافيا</option><option>أخرى</option></select></div>
+              <div class="fw"><label class="Fl">المرحلة *</label><select id="gp_stage" class="F"><option value="">-- اختر --</option><optgroup label="ثانوي"><option>الصف الأول الثانوي</option><option>الصف الثاني الثانوي</option><option>الصف الثالث الثانوي</option></optgroup><optgroup label="إعدادي"><option>الصف الأول الإعدادي</option><option>الصف الثاني الإعدادي</option><option>الصف الثالث الإعدادي</option></optgroup></select></div>
+              <div class="fw"><label class="Fl">السنتر *</label><select id="gp_center" class="F"><option value="">-- اختر --</option></select></div>
+              <div class="fw"><label class="Fl">المساعد</label><select id="gp_asst" class="F"><option value="">-- اختر --</option></select></div>
+              <div class="fw"><label class="Fl">اليوم *</label><select id="gp_day" class="F"><option value="">-- اختر --</option><option>السبت</option><option>الأحد</option><option>الاثنين</option><option>الثلاثاء</option><option>الأربعاء</option><option>الخميس</option><option>الجمعة</option></select></div>
+              <div class="fw"><label class="Fl">وقت البدء</label><input id="gp_time" class="F" type="time"></div>
+              <div class="fw"><label class="Fl">الحد الأقصى للطلاب</label><input id="gp_max" class="F" type="number" value="40" min="1"></div>
+              <div class="fw"><label class="Fl">سعر الحصة (جنيه)</label><input id="gp_price" class="F" type="number" value="0" min="0"></div>
+            </div>
+            <button class="btn btn-p btn-sm" style="margin-top:14px" onclick="addGroup()"><i class="fa-solid fa-plus"></i> إضافة المجموعة</button>
+            <div id="gpFb" class="fb"></div>
+          </div>
+          <div class="card"><div class="card-header"><div class="card-title"><i class="fa-solid fa-layer-group"></i>المجموعات<span class="b b-i" id="gpCnt" style="margin-right:8px">0</span></div></div><div id="gpList"></div></div>
+        </div>
+
+        <!-- ═══ ASSISTANTS ═══ -->
+        <div class="view" id="v-assistants">
+          <div class="card">
+            <div class="card-header"><div class="card-title"><i class="fa-solid fa-user-plus" style="color:var(--vi)"></i>إضافة مساعد</div></div>
+            <div class="fr2">
+              <div class="fw"><label class="Fl">الاسم الكامل *</label><input id="as_name" class="F" placeholder="اسم المساعد"></div>
+              <div class="fw"><label class="Fl">كود الدخول الوظيفي *</label><input id="as_code" class="F" placeholder="مثال: A1234"></div>
+              <div class="fw"><label class="Fl">رقم الهاتف</label><input id="as_phone" class="F" placeholder="01xxxxxxxxx"></div>
+              <div class="fw"><label class="Fl">ملاحظات</label><input id="as_note" class="F" placeholder="اختياري"></div>
+            </div>
+            <button class="btn btn-p btn-sm" style="margin-top:14px" onclick="addAssistant()"><i class="fa-solid fa-plus"></i> إضافة المساعد</button>
+            <div id="asFb" class="fb"></div>
+          </div>
+          <div class="card"><div class="card-header"><div class="card-title"><i class="fa-solid fa-users-gear" style="color:var(--vi)"></i>المساعدون<span class="b b-v" id="asCnt" style="margin-right:8px">0</span></div></div><div id="asList"></div></div>
+        </div>
+
+        <!-- ═══ STUDENTS ═══ -->
+        <div class="view" id="v-students">
+          <div class="card">
+            <div class="card-header"><div class="card-title"><i class="fa-solid fa-user-plus"></i>إضافة طالب جديد</div></div>
+            <div class="fr3">
+              <div class="fw"><label class="Fl">رقم الطالب (تلقائي)</label><input id="st_uid" class="F" readonly style="background:rgba(6,6,8,.75);color:var(--in2);font-family:'Poppins';font-weight:700;letter-spacing:.5px"></div>
+              <div class="fw"><label class="Fl">الاسم الكامل *</label><input id="st_name" class="F" placeholder="اسم الطالب"></div>
+              <div class="fw"><label class="Fl">المجموعة</label><select id="st_group" class="F"><option value="">-- اختر --</option></select></div>
+              <div class="fw"><label class="Fl">المرحلة الدراسية</label><select id="st_grade" class="F"><option value="">-- اختر --</option><option>الصف الأول الثانوي</option><option>الصف الثاني الثانوي</option><option>الصف الثالث الثانوي</option><option>الصف الأول الإعدادي</option><option>الصف الثاني الإعدادي</option><option>الصف الثالث الإعدادي</option></select></div>
+              <div class="fw"><label class="Fl">النوع</label><select id="st_gender" class="F"><option value="">-- اختر --</option><option>ذكر</option><option>أنثى</option></select></div>
+              <div class="fw"><label class="Fl">هاتف الطالب</label><input id="st_sph" class="F" placeholder="01xxxxxxxxx"></div>
+              <div class="fw"><label class="Fl">هاتف ولي الأمر (واتساب) *</label><input id="st_pph" class="F" placeholder="01xxxxxxxxx"></div>
+              <div class="fw"><label class="Fl">الرصيد الافتتاحي</label><input id="st_bal" class="F" type="number" value="1" min="0"></div>
+              <div class="fw"><label class="Fl">الحالة</label><select id="st_status" class="F"><option value="active">نشط</option><option value="pending">قيد الانتظار</option><option value="suspended">موقوف</option><option value="frozen">مجمد</option><option value="graduated">متخرج</option><option value="archived">مؤرشف</option></select></div>
+            </div>
+            <button class="btn btn-p btn-sm" style="margin-top:14px" onclick="addStudent()"><i class="fa-solid fa-user-plus"></i> إضافة الطالب</button>
+            <div id="stFb" class="fb"></div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="fa-solid fa-users"></i>الطلاب<span class="b b-i" id="stCnt" style="margin-right:8px">0</span></div>
+              <div class="card-actions"><div class="bic" onclick="expStudentsXlsx()" title="Excel"><i class="fa-solid fa-file-excel"></i></div><div class="bic" onclick="expStudentsPdf()" title="PDF"><i class="fa-solid fa-file-pdf"></i></div></div>
+            </div>
+            <div class="sbar">
+              <div class="si-wrap"><i class="fa-solid fa-magnifying-glass"></i><input class="si" id="stSearch" placeholder="بحث بالاسم أو الرقم..." oninput="renderStudents()"></div>
+              <select class="F si" id="stFgrp" style="flex:0;min-width:148px" onchange="renderStudents()"><option value="">كل المجموعات</option></select>
+              <select class="F si" id="stFstat" style="flex:0;min-width:132px" onchange="renderStudents()"><option value="">كل الحالات</option><option value="active">نشط</option><option value="suspended">موقوف</option><option value="graduated">متخرج</option><option value="frozen">مجمد</option></select>
+            </div>
+            <div class="tbl"><table><thead><tr><th>رقم الطالب</th><th>الاسم</th><th>المجموعة</th><th>المرحلة</th><th>ولي الأمر</th><th>الرصيد</th><th>الحالة</th><th>QR</th><th></th></tr></thead><tbody id="stTbody"></tbody></table></div>
+          </div>
+        </div>
+
+        <!-- ═══ WALLET ═══ -->
+        <div class="view" id="v-wallet">
+          <div class="g2">
+            <div class="card">
+              <div class="card-header"><div class="card-title"><i class="fa-solid fa-wallet" style="color:var(--em2)"></i>تعديل رصيد طالب</div></div>
+              <div class="fw"><label class="Fl">رقم الطالب (UID)</label><input id="wl_uid" class="F" placeholder="BS-2026-0001" oninput="prevWallet()"></div>
+              <div id="wlPreview" style="display:none;background:rgba(16,185,129,.06);border:1px solid var(--emb);border-radius:12px;padding:13px;margin:10px 0">
+                <div style="font-weight:800;font-size:14px" id="wlName">—</div>
+                <div style="font-size:12.5px;color:var(--t2);margin-top:3px">الرصيد: <span id="wlBal" style="color:var(--em2);font-weight:900;font-family:'Poppins'">0</span> حصة</div>
+              </div>
+              <div class="fw"><label class="Fl">العملية</label><select id="wl_act" class="F"><option value="add">➕ إضافة رصيد</option><option value="sub">➖ خصم رصيد</option><option value="set">🎯 تعيين رصيد محدد</option></select></div>
+              <div class="fw"><label class="Fl">عدد الحصص</label><input id="wl_amt" class="F" type="number" min="1" placeholder="0"></div>
+              <button class="btn btn-e btn-fw" onclick="doWallet()"><i class="fa-solid fa-coins"></i> تطبيق</button>
+              <div id="wlFb" class="fb"></div>
+            </div>
+            <div class="card"><div class="card-header"><div class="card-title"><i class="fa-solid fa-triangle-exclamation" style="color:var(--ro)"></i>أرصدة منخفضة ≤ 2</div></div><div id="lowList"></div></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title"><i class="fa-solid fa-bolt" style="color:var(--am)"></i>شحن جماعي للمجموعة</div></div>
+            <div class="fr2">
+              <div class="fw"><label class="Fl">المجموعة</label><select id="blk_grp" class="F"><option value="">-- اختر --</option></select></div>
+              <div class="fw"><label class="Fl">عدد الحصص المضافة</label><input id="blk_amt" class="F" type="number" min="1" placeholder="عدد الحصص"></div>
+            </div>
+            <button class="btn btn-a btn-sm" style="margin-top:13px" onclick="doBulk()"><i class="fa-solid fa-bolt"></i> تطبيق الشحن</button>
+            <div id="blkFb" class="fb"></div>
+          </div>
+        </div>
+
+        <!-- ═══ VOIDS ═══ -->
+        <div class="view" id="v-voids">
+          <div class="card"><div class="card-header"><div class="card-title"><i class="fa-solid fa-shield-exclamation" style="color:var(--am)"></i>طلبات Void المعلقة</div></div><div id="voidList"></div></div>
+          <div class="card"><div class="card-header"><div class="card-title"><i class="fa-solid fa-history" style="color:var(--t3)"></i>سجل طلبات Void</div></div><div id="voidHist"></div></div>
+        </div>
+
+        <!-- ═══ RECHARGE ═══ -->
+        <div class="view" id="v-recharge">
+          <div class="card"><div class="card-header"><div class="card-title"><i class="fa-solid fa-battery-full" style="color:var(--em2)"></i>طلبات التجديد المعلقة</div></div><div id="rchList"></div></div>
+        </div>
+
+        <!-- ═══ SESSIONS ═══ -->
+        <div class="view" id="v-sessions">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="fa-solid fa-chalkboard-user"></i>جلسات الحضور</div>
+              <select id="sessFilter" class="F" style="width:auto;min-width:150px;border-radius:10px;padding:6px 12px;font-size:12px" onchange="renderSessions()"><option value="all">كل الجلسات</option><option value="open">مفتوحة</option><option value="locked">مقفلة</option></select>
+            </div>
+            <div id="sessList"></div>
+          </div>
+        </div>
+
+        <!-- ═══ WHATSAPP ═══ -->
+        <div class="view" id="v-wa">
+          <div class="card">
+            <div class="card-header"><div class="card-title"><i class="fa-brands fa-whatsapp" style="color:#25D366;font-size:18px"></i>إرسال رسائل واتساب</div></div>
+            <div class="fr2">
+              <div class="fw"><label class="Fl">المجموعة</label><select id="wa_grp" class="F" onchange="loadWAList()"><option value="">-- اختر --</option></select></div>
+              <div class="fw"><label class="Fl">نوع الرسالة</label><select id="wa_type" class="F" onchange="applyWATpl()"><option value="custom">رسالة مخصصة</option><option value="absent">إشعار غياب اليوم</option><option value="low">تحذير رصيد منخفض</option><option value="recharge">طلب تجديد اشتراك</option></select></div>
+            </div>
+            <div class="fw" style="margin-top:12px"><label class="Fl">نص الرسالة — استخدم {name} و {teacher}</label><textarea id="wa_msg" class="F" rows="4" placeholder="اكتب الرسالة..."></textarea></div>
+            <button class="btn btn-sm btn-gh" style="margin-top:10px" onclick="loadWAList()"><i class="fa-solid fa-rotate"></i> تحديث القائمة</button>
+          </div>
+          <div class="card"><div class="card-header"><div class="card-title"><i class="fa-solid fa-list-check"></i>قائمة الإرسال</div></div><div id="waList"></div></div>
+          <div class="card"><div class="card-header"><div class="card-title"><i class="fa-solid fa-chart-bar" style="color:var(--vi)"></i>إحصائيات المساعدين</div></div><div id="asstStats"></div></div>
+        </div>
+
+        <!-- ═══ REPORTS ═══ -->
+        <div class="view" id="v-reports">
+          <div class="g3">
+            <div class="card" style="text-align:center"><div style="width:54px;height:54px;border-radius:15px;background:var(--emg);color:var(--em2);font-size:22px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px"><i class="fa-solid fa-file-excel"></i></div><div style="font-weight:800;margin-bottom:6px">قائمة الطلاب</div><div style="font-size:11.5px;color:var(--t3);margin-bottom:13px">بيانات كاملة</div><button class="btn btn-e btn-sm btn-fw" onclick="expStudentsXlsx()"><i class="fa-solid fa-download"></i> Excel</button></div>
+            <div class="card" style="text-align:center"><div style="width:54px;height:54px;border-radius:15px;background:var(--ing);color:var(--in2);font-size:22px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px"><i class="fa-solid fa-chart-column"></i></div><div style="font-weight:800;margin-bottom:6px">تقرير الحضور</div><div style="font-size:11.5px;color:var(--t3);margin-bottom:13px">كل الجلسات</div><button class="btn btn-p btn-sm btn-fw" onclick="expAttXlsx()"><i class="fa-solid fa-download"></i> Excel</button></div>
+            <div class="card" style="text-align:center"><div style="width:54px;height:54px;border-radius:15px;background:var(--rog);color:var(--ro);font-size:22px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px"><i class="fa-solid fa-file-pdf"></i></div><div style="font-weight:800;margin-bottom:6px">ملخص PDF</div><div style="font-size:11.5px;color:var(--t3);margin-bottom:13px">تقرير النظام</div><button class="btn btn-r btn-sm btn-fw" onclick="expPdf()"><i class="fa-solid fa-download"></i> PDF</button></div>
+          </div>
+          <div class="card"><div class="card-header"><div class="card-title"><i class="fa-solid fa-triangle-exclamation" style="color:var(--ro)"></i>تقرير الأرصدة المنخفضة</div><button class="btn btn-gh btn-sm" onclick="expLowXlsx()"><i class="fa-solid fa-file-excel"></i> تصدير</button></div><div id="rptLow"></div></div>
+        </div>
+
+        <!-- ═══ LOGS ═══ -->
+        <div class="view" id="v-logs"><div class="card"><div class="card-header"><div class="card-title"><i class="fa-solid fa-scroll" style="color:var(--am)"></i>سجل عمليات النظام</div></div><div id="logsList"></div></div></div>
+
+        <!-- ═══ SETTINGS ═══ -->
+        <div class="view" id="v-settings">
+          <div class="card">
+            <div class="s-sec"><div class="s-title"><i class="fa-solid fa-user-tie" style="color:var(--in2)"></i> هوية المدرس والنظام</div>
+              <div class="fr2"><div class="fw"><label class="Fl">اسم المدرس / الأكاديمية</label><input id="cfg_prof" class="F" placeholder="اسم المدرس"></div><div class="fw"><label class="Fl">واتساب الدعم (كود دولي)</label><input id="cfg_wa" class="F" placeholder="201xxxxxxxxx"></div></div>
+            </div>
+            <div class="s-sec"><div class="s-title"><i class="fa-solid fa-comment-sms" style="color:var(--em2)"></i> نماذج رسائل واتساب</div>
+              <div class="fw"><label class="Fl">رسالة الغياب</label><textarea id="cfg_abs" class="F" rows="3" placeholder="عزيزي ولي أمر {name}..."></textarea></div>
+              <div class="fw" style="margin-top:10px"><label class="Fl">رسالة الرصيد المنخفض</label><textarea id="cfg_low" class="F" rows="3" placeholder="عزيزي ولي أمر {name}..."></textarea></div>
+              <div class="fw" style="margin-top:10px"><label class="Fl">رسالة طلب التجديد</label><textarea id="cfg_rch" class="F" rows="3" placeholder="عزيزي ولي أمر {name}..."></textarea></div>
+            </div>
+            <div class="s-sec"><div class="s-title"><i class="fa-solid fa-lock" style="color:var(--am)"></i> كلمات المرور</div>
+              <div class="fr2"><div class="fw"><label class="Fl">كلمة مرور الأدمن الجديدة</label><input id="cfg_admp" class="F" type="password" placeholder="اتركه فارغاً للإبقاء"></div><div class="fw"><label class="Fl">كلمة مرور المعلم الجديدة</label><input id="cfg_tchp" class="F" type="password" placeholder="اتركه فارغاً للإبقاء"></div></div>
+            </div>
+            <button class="btn btn-p btn-sm" onclick="saveSettings()"><i class="fa-solid fa-floppy-disk"></i> حفظ الإعدادات</button>
+            <div id="cfgFb" class="fb"></div>
+          </div>
+          <div class="card" style="font-size:12px;color:var(--t3)">
+            <div class="card-header"><div class="card-title"><i class="fa-solid fa-circle-info" style="color:var(--sk)"></i>معلومات النظام</div></div>
+            <div style="line-height:2.4;padding:2px 0"><div>النظام: <b style="color:var(--t1)">Brothers Studio Attendance System</b></div><div>الإصدار: <span style="color:var(--in2);font-family:'Poppins';font-weight:700">V2.0.0</span></div><div>المطور: <span style="color:var(--em2);font-weight:700">Zeyad Eldery</span></div><div style="color:var(--t2)">Powered By Brothers Studio</div></div>
+          </div>
+        </div>
+
+        <!-- ═══ BACKUP ═══ -->
+        <div class="view" id="v-backup">
+          <div class="card">
+            <div class="card-header"><div class="card-title"><i class="fa-solid fa-database" style="color:var(--sk)"></i>نسخ احتياطي</div></div>
+            <p style="font-size:13px;color:var(--t2);margin-bottom:16px">تحميل نسخة كاملة من جميع بيانات النظام كملف JSON.</p>
+            <button class="btn btn-p btn-sm" onclick="doBackup()"><i class="fa-solid fa-download"></i> تحميل نسخة احتياطية</button>
+          </div>
+          <div class="dz">
+            <div style="font-size:15px;font-weight:800;color:var(--ro);margin-bottom:10px;display:flex;align-items:center;gap:9px"><i class="fa-solid fa-skull-crossbones"></i> منطقة الخطر</div>
+            <p style="font-size:13px;color:#FDA4B0;margin-bottom:16px">حذف كامل لكل البيانات — لا يمكن التراجع عن هذا الإجراء.</p>
+            <button class="btn btn-r btn-sm" onclick="openDelModal()"><i class="fa-solid fa-trash-can"></i> حذف جميع البيانات</button>
+          </div>
+        </div>
+
+      </div><!-- /content -->
+    </div><!-- /main -->
+  </div><!-- /layout -->
+</div><!-- /APP -->
+
+<!-- MODALS -->
+<div class="modal" id="M_editSt"><div class="mbox">
+  <div class="mtitle"><i class="fa-solid fa-user-pen" style="color:var(--in2)"></i> تعديل بيانات الطالب</div>
+  <input type="hidden" id="esFid">
+  <div class="fr2">
+    <div class="fw"><label class="Fl">الاسم</label><input id="esName" class="F"></div>
+    <div class="fw"><label class="Fl">المجموعة</label><select id="esGrp" class="F"></select></div>
+    <div class="fw"><label class="Fl">هاتف ولي الأمر</label><input id="esPph" class="F"></div>
+    <div class="fw"><label class="Fl">هاتف الطالب</label><input id="esSph" class="F"></div>
+    <div class="fw"><label class="Fl">المرحلة</label><select id="esGrade" class="F"><option value="">--</option><option>الصف الأول الثانوي</option><option>الصف الثاني الثانوي</option><option>الصف الثالث الثانوي</option><option>الصف الأول الإعدادي</option><option>الصف الثاني الإعدادي</option><option>الصف الثالث الإعدادي</option></select></div>
+    <div class="fw"><label class="Fl">الحالة</label><select id="esStatus" class="F"><option value="active">نشط</option><option value="suspended">موقوف</option><option value="graduated">متخرج</option><option value="frozen">مجمد</option><option value="pending">قيد الانتظار</option><option value="archived">مؤرشف</option></select></div>
+  </div>
+  <div class="mactions"><button class="btn btn-gh btn-sm" onclick="closeM('M_editSt')">إلغاء</button><button class="btn btn-p btn-sm" onclick="saveEditSt()"><i class="fa-solid fa-floppy-disk"></i> حفظ</button></div>
+</div></div>
+
+<div class="modal" id="M_qr"><div class="mbox" style="max-width:370px;text-align:center">
+  <div class="mtitle" style="justify-content:center"><i class="fa-solid fa-qrcode" style="color:var(--in2)"></i> QR الطالب</div>
+  <div class="qrw" id="qrInner" style="margin:0 auto 14px"></div>
+  <div id="qrLabel" style="font-weight:800;font-size:13.5px;margin-bottom:14px;color:var(--t1)"></div>
+  <div class="mactions" style="justify-content:center"><button class="btn btn-e btn-sm" onclick="dlQR()"><i class="fa-solid fa-download"></i> تحميل PNG</button><button class="btn btn-gh btn-sm" onclick="closeM('M_qr')">إغلاق</button></div>
+</div></div>
+
+<div class="modal" id="M_rjVoid"><div class="mbox" style="max-width:450px">
+  <div class="mtitle"><i class="fa-solid fa-ban" style="color:var(--ro)"></i> رفض طلب Void</div>
+  <input type="hidden" id="rjvId">
+  <div class="fw"><label class="Fl">سبب الرفض</label><textarea id="rjvRsn" class="F" rows="3" placeholder="اكتب السبب..."></textarea></div>
+  <div class="mactions"><button class="btn btn-gh btn-sm" onclick="closeM('M_rjVoid')">إلغاء</button><button class="btn btn-r btn-sm" onclick="submitRjVoid()">تأكيد الرفض</button></div>
+</div></div>
+
+<div class="modal" id="M_rjRch"><div class="mbox" style="max-width:450px">
+  <div class="mtitle"><i class="fa-solid fa-ban" style="color:var(--ro)"></i> رفض طلب تجديد</div>
+  <input type="hidden" id="rjrId">
+  <div class="fw"><label class="Fl">سبب الرفض</label><textarea id="rjrRsn" class="F" rows="3" placeholder="اكتب السبب..."></textarea></div>
+  <div class="mactions"><button class="btn btn-gh btn-sm" onclick="closeM('M_rjRch')">إلغاء</button><button class="btn btn-r btn-sm" onclick="submitRjRch()">تأكيد الرفض</button></div>
+</div></div>
+
+<div class="modal" id="M_del"><div class="mbox" style="max-width:420px">
+  <div class="mtitle" style="color:var(--ro)"><i class="fa-solid fa-skull-crossbones"></i> تأكيد الحذف الكامل</div>
+  <p style="font-size:13px;color:#FDA4B0;margin-bottom:16px">هذا الإجراء لا يمكن التراجع عنه. اكتب <strong style="color:#fff;font-family:'Poppins'">DELETE</strong> للتأكيد.</p>
+  <input id="delConfirm" class="F" placeholder="DELETE">
+  <div class="mactions"><button class="btn btn-gh btn-sm" onclick="closeM('M_del')">إلغاء</button><button class="btn btn-r btn-sm" onclick="confirmDel()"><i class="fa-solid fa-trash"></i> حذف كل شيء</button></div>
+</div></div>
+
+<script>
+// ╔══════════════════════════════════════╗
+// ║        FIREBASE — NEW CONFIG         ║
+// ╚══════════════════════════════════════╝
+const _FC = {
+  apiKey: "AIzaSyD971ixQUVYZxTtjAkl7U8bC-ZbsZgCUX4",
+  authDomain: "brothers-studio-attendance.firebaseapp.com",
+  databaseURL: "https://brothers-studio-attendance-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "brothers-studio-attendance",
+  storageBucket: "brothers-studio-attendance.firebasestorage.app",
+  messagingSenderId: "149223396857",
+  appId: "1:149223396857:web:2d8629ef8f76581e35d928"
+};
+if (!firebase.apps.length) firebase.initializeApp(_FC);
+const db = firebase.database();
+
+// ╔══════════════════════════════════════╗
+// ║              APP STATE               ║
+// ╚══════════════════════════════════════╝
+const S = { students:{}, groups:{}, assistants:{}, centers:{}, sessions:{} };
+let C_w = null, C_g = null;
+let _notifs = {};
+let _wlFid = null;
+let _waTpls = { absent:'', low:'', recharge:'' };
+
+// ╔══════════════════════════════════════╗
+// ║               SPLASH                 ║
+// ╚══════════════════════════════════════╝
+setTimeout(() => document.getElementById('splash').classList.add('hide'), 2200);
+
+// ╔══════════════════════════════════════╗
+// ║               UTILITIES              ║
+// ╚══════════════════════════════════════╝
+const el = id => document.getElementById(id);
+
+function toast(msg, type = 'ok') {
+  const icons = { ok:'fa-circle-check', err:'fa-circle-xmark', warn:'fa-triangle-exclamation', info:'fa-circle-info' };
+  const t = document.createElement('div');
+  t.className = `toast t-${type}`;
+  t.innerHTML = `<i class="fa-solid ${icons[type]||icons.ok}"></i><span>${msg}</span>`;
+  t.onclick = () => t.remove();
+  el('TC').appendChild(t);
+  setTimeout(() => { t.style.transition = '.3s'; t.style.opacity = '0'; t.style.transform = 'translateX(-16px)'; setTimeout(() => t.remove(), 320); }, 3500);
+}
+
+function showFb(id, msg, type) {
+  const e = el(id); if (!e) return;
+  e.textContent = msg; e.className = `fb fb-${type}`; e.style.display = 'block';
+  setTimeout(() => e.style.display = 'none', 4500);
+}
+
+function openM(id) { el(id).classList.add('on'); }
+function closeM(id) { el(id).classList.remove('on'); }
+window.addEventListener('click', e => { if (e.target.classList.contains('modal')) e.target.classList.remove('on'); });
+
+async function logOp(type, msg) {
+  await db.ref('system_operations_logs').push({ type, message: msg, timestamp: Date.now(), user: 'admin' });
+}
+
+async function pushNotif(type, msg, icon = 'fa-bell', color = 'var(--in2)') {
+  await db.ref('notifications').push({ type, message: msg, icon, color, timestamp: Date.now(), read: false });
+}
+
+function timeAgo(ts) {
+  const d = Date.now() - ts;
+  if (d < 60000) return 'الآن';
+  if (d < 3600000) return Math.floor(d / 60000) + ' د';
+  if (d < 86400000) return Math.floor(d / 3600000) + ' س';
+  return new Date(ts).toLocaleDateString('ar-EG');
+}
+
+// ╔══════════════════════════════════════╗
+// ║                 TIME                 ║
+// ╚══════════════════════════════════════╝
+function updateTime() {
+  const e = el('tbTime');
+  if (e) e.textContent = new Date().toLocaleString('ar-EG', { hour:'2-digit', minute:'2-digit', second:'2-digit', day:'numeric', month:'short' });
+}
+setInterval(updateTime, 1000);
+
+// ╔══════════════════════════════════════╗
+// ║                LOGIN                 ║
+// ╚══════════════════════════════════════╝
+async function doLogin() {
+  const pass = el('lpass').value;
+  const snap = await db.ref('app_configurations/admin_password').once('value');
+  const stored = snap.val() || '0000';
+  if (pass === stored) {
+    sessionStorage.setItem('bs_adm', '1');
+    el('login').style.display = 'none';
+    el('APP').style.display = 'block';
+    initApp();
+  } else {
+    const e = el('lerr'); e.style.display = 'block';
+    el('lpass').value = '';
+    setTimeout(() => e.style.display = 'none', 3000);
+  }
+}
+function doLogout() { sessionStorage.removeItem('bs_adm'); location.reload(); }
+el('lpass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+// ╔══════════════════════════════════════╗
+// ║               VIEWS                  ║
+// ╚══════════════════════════════════════╝
+const VIEW_META = {
+  'v-db':{ icon:'fa-gauge-high', title:'لوحة التحكم' },
+  'v-centers':{ icon:'fa-building', title:'السناتر' },
+  'v-groups':{ icon:'fa-layer-group', title:'المجموعات' },
+  'v-assistants':{ icon:'fa-users-gear', title:'المساعدون' },
+  'v-students':{ icon:'fa-graduation-cap', title:'الطلاب' },
+  'v-wallet':{ icon:'fa-wallet', title:'المحافظ والرصيد' },
+  'v-voids':{ icon:'fa-shield-exclamation', title:'طلبات Void' },
+  'v-recharge':{ icon:'fa-battery-full', title:'طلبات التجديد' },
+  'v-sessions':{ icon:'fa-chalkboard-user', title:'الجلسات' },
+  'v-wa':{ icon:'fa-comment-dots', title:'واتساب والمتابعة' },
+  'v-reports':{ icon:'fa-chart-bar', title:'التقارير' },
+  'v-logs':{ icon:'fa-scroll', title:'سجل النظام' },
+  'v-settings':{ icon:'fa-sliders', title:'الإعدادات' },
+  'v-backup':{ icon:'fa-database', title:'النسخ الاحتياطي' },
+};
+
+function showV(vid, navEl) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('on'));
+  document.querySelectorAll('.ni').forEach(n => n.classList.remove('on'));
+  el(vid)?.classList.add('on');
+  if (navEl) navEl.classList.add('on');
+  const m = VIEW_META[vid] || { icon:'fa-circle', title: vid };
+  el('pgIco').className = `fa-solid ${m.icon} pg-ico`;
+  el('pgTitle').textContent = m.title;
+  closeSB();
+  if (vid === 'v-sessions') renderSessions();
+  if (vid === 'v-logs') loadLogs();
+  if (vid === 'v-voids') { renderVoids(); renderVoidHist(); }
+  if (vid === 'v-recharge') renderRecharge();
+  if (vid === 'v-reports') renderRptLow();
+  if (vid === 'v-wa') renderAsstStats();
+}
+
+function toggleSB() { el('SB').classList.toggle('on'); el('sbov').classList.toggle('on'); }
+function closeSB() { el('SB').classList.remove('on'); el('sbov').classList.remove('on'); }
+
+// ╔══════════════════════════════════════╗
+// ║            NOTIFICATIONS             ║
+// ╚══════════════════════════════════════╝
+function initNotifListener() {
+  db.ref('notifications').on('value', snap => {
+    _notifs = {};
+    const data = snap.val() || {};
+    let unread = 0;
+    Object.entries(data).forEach(([k, n]) => { _notifs[k] = n; if (!n.read) unread++; });
+    const badge = el('nbCount');
+    badge.textContent = unread;
+    badge.style.display = unread > 0 ? 'flex' : 'none';
+    renderNotifList();
+  });
+}
+
+function renderNotifList() {
+  const list = el('npList');
+  const items = Object.entries(_notifs).sort(([,a],[,b]) => b.timestamp - a.timestamp);
+  if (!items.length) { list.innerHTML = '<div class="np-empty"><i class="fa-regular fa-bell-slash" style="font-size:28px;display:block;margin-bottom:10px;opacity:.2"></i>لا توجد إشعارات</div>'; return; }
+  list.innerHTML = items.map(([k, n]) => `
+    <div class="np-item${n.read ? '' : ' unread'}" onclick="markNotifRead('${k}')">
+      <div class="np-ic" style="background:rgba(99,102,241,.1);color:${n.color||'var(--in2)'}"><i class="fa-solid ${n.icon||'fa-bell'}"></i></div>
+      <div style="flex:1;min-width:0"><div class="np-msg">${n.message||''}</div><div class="np-time">${timeAgo(n.timestamp||0)}</div></div>
+      <div class="np-del" onclick="delNotif(event,'${k}')"><i class="fa-solid fa-xmark"></i></div>
+    </div>`).join('');
+}
+
+async function markNotifRead(id) { await db.ref(`notifications/${id}/read`).set(true); }
+async function delNotif(ev, id) { ev.stopPropagation(); await db.ref(`notifications/${id}`).remove(); toast('تم حذف الإشعار', 'info'); }
+async function markAllRead() {
+  const u = {};
+  Object.keys(_notifs).forEach(k => { u[`notifications/${k}/read`] = true; });
+  await db.ref().update(u);
+}
+async function deleteAllNotifs() { await db.ref('notifications').remove(); toast('تم حذف كل الإشعارات', 'info'); }
+function toggleNP() { el('NP').classList.toggle('on'); }
+document.addEventListener('click', e => { if (!e.target.closest('.nb-wrap')) el('NP')?.classList.remove('on'); });
+
+// ╔══════════════════════════════════════╗
+// ║             INIT APP                 ║
+// ╚══════════════════════════════════════╝
+function initApp() {
+  updateTime();
+  loadAll();
+  initNotifListener();
+  initBadgeListeners();
+  loadSettings();
+}
+
+function loadAll() {
+  db.ref('students_directory').on('value', snap => { S.students = snap.val()||{}; renderStudents(); renderLowBal(); updateStats(); });
+  db.ref('app_configurations/groups').on('value', snap => { S.groups = snap.val()||{}; popGroupSelects(); renderGroupsList(); updateStats(); });
+  db.ref('app_configurations/assistants').on('value', snap => { S.assistants = snap.val()||{}; popAssistantSelects(); renderAssistantList(); updateStats(); });
+  db.ref('app_configurations/centers').on('value', snap => { S.centers = snap.val()||{}; popCenterSelects(); renderCenterList(); });
+  db.ref('attendance_sessions').on('value', snap => { S.sessions = snap.val()||{}; updateStats(); renderLiveSessions(); });
+  db.ref('system_operations_logs').limitToLast(15).on('value', snap => { renderFeed(snap.val()||{}); });
+}
+
+function initBadgeListeners() {
+  db.ref('void_requests').on('value', snap => {
+    const p = Object.values(snap.val()||{}).filter(r => r.status==='pending').length;
+    const b = el('voidBadge'); b.textContent = p; b.style.display = p > 0 ? 'flex' : 'none';
+  });
+  db.ref('recharge_requests').on('value', snap => {
+    const p = Object.values(snap.val()||{}).filter(r => r.status==='pending').length;
+    const b = el('rchBadge'); b.textContent = p; b.style.display = p > 0 ? 'flex' : 'none';
+  });
+}
+
+// ╔══════════════════════════════════════╗
+// ║           DASHBOARD STATS            ║
+// ╚══════════════════════════════════════╝
+function updateStats() {
+  const total = Object.keys(S.students).length;
+  const today = new Date().toISOString().slice(0, 10);
+  let todayPr = 0;
+  Object.values(S.sessions).forEach(s => { if (s.startTime && new Date(s.startTime).toISOString().slice(0,10) === today && s.attended) todayPr += Object.keys(s.attended).length; });
+  el('dSt').textContent = total;
+  el('dPr').textContent = todayPr;
+  el('dGr').textContent = Object.keys(S.groups).length;
+  el('dAs').textContent = Object.keys(S.assistants).length;
+  el('dLw').textContent = Object.values(S.students).filter(s => s.wallet_balance <= 2).length;
+  el('stCnt').textContent = total;
+  el('gpCnt').textContent = Object.keys(S.groups).length;
+  el('asCnt').textContent = Object.keys(S.assistants).length;
+  el('cnCnt').textContent = Object.keys(S.centers).length;
+  updateCharts();
+}
+
+// ╔══════════════════════════════════════╗
+// ║               CHARTS                 ║
+// ╚══════════════════════════════════════╝
+function updateCharts() {
+  Chart.defaults.color = '#5A6290';
+  Chart.defaults.font.family = "'Cairo','Poppins'";
+
+  // Weekly attendance chart
+  const ctx1 = el('wChart')?.getContext('2d');
+  if (ctx1) {
+    const today = new Date(); const lbs = []; const data = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(today); d.setDate(d.getDate() - i);
+      const ds = d.toISOString().slice(0, 10);
+      const dn = ['أحد','إثنين','ثلاثاء','أربعاء','خميس','جمعة','سبت'];
+      lbs.push(dn[d.getDay()]);
+      let c = 0;
+      Object.values(S.sessions).forEach(s => { if (s.startTime && new Date(s.startTime).toISOString().slice(0,10) === ds && s.attended) c += Object.keys(s.attended).length; });
+      data.push(c);
+    }
+    if (C_w) C_w.destroy();
+    C_w = new Chart(ctx1, {
+      type: 'line',
+      data: { labels: lbs, datasets: [{ label:'حضور', data, borderColor:'#6366F1', backgroundColor:'rgba(99,102,241,.08)', fill:true, tension:.4, pointBackgroundColor:'#6366F1', pointBorderColor:'#060608', pointRadius:5, pointBorderWidth:2 }] },
+      options: { responsive:true, plugins:{ legend:{ display:false } }, scales:{ x:{ grid:{ color:'rgba(255,255,255,.04)' }, border:{ display:false } }, y:{ grid:{ color:'rgba(255,255,255,.04)' }, border:{ display:false }, beginAtZero:true, ticks:{ stepSize:1 } } } }
+    });
+  }
+
+  // Groups donut chart
+  const ctx2 = el('gChart')?.getContext('2d');
+  if (ctx2) {
+    const lbs = Object.values(S.groups).map(g => (g.title||'—').slice(0, 16));
+    const data = Object.keys(S.groups).map(gid => Object.values(S.students).filter(s => s.group_reference === gid).length);
+    if (C_g) C_g.destroy();
+    if (!lbs.length) return;
+    C_g = new Chart(ctx2, {
+      type: 'doughnut',
+      data: { labels: lbs, datasets: [{ data, backgroundColor:['#6366F1','#10B981','#F59E0B','#F43F5E','#8B5CF6','#0EA5E9','#EC4899'], borderWidth:0, hoverOffset:8 }] },
+      options: { responsive:true, cutout:'70%', plugins:{ legend:{ position:'bottom', labels:{ color:'#5A6290', padding:10, font:{ size:10.5 } } } } }
+    });
+  }
+}
+
+function renderFeed(list) {
+  const e = el('feedList'); if (!e) return;
+  const items = Object.values(list).reverse().slice(0, 8);
+  if (!items.length) { e.innerHTML = '<div class="empty-state"><i class="fa-regular fa-clock"></i><p>لا توجد عمليات بعد</p></div>'; return; }
+  const cm = { attendance:'fd-e', session_open:'fd-i', session_close:'fd-a', void:'fd-r', recharge:'fd-e', student_add:'fd-i' };
+  e.innerHTML = items.map(it => `<div class="feed-row"><div class="fd ${cm[it.type]||'fd-i'}"></div><div style="flex:1;font-size:12.5px;color:var(--t2)">${it.message||''}</div><div style="font-size:10.5px;color:var(--t4);font-family:'Poppins';white-space:nowrap">${it.timestamp ? timeAgo(it.timestamp) : ''}</div></div>`).join('');
+}
+
+function renderLiveSessions() {
+  const e = el('liveSessions'); if (!e) return;
+  const open = Object.entries(S.sessions).filter(([,s]) => s.is_open);
+  if (!open.length) { e.innerHTML = '<div class="empty-state"><i class="fa-regular fa-circle"></i><p>لا توجد جلسات مفتوحة الآن</p></div>'; return; }
+  e.innerHTML = open.map(([,s]) => `<div style="display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:var(--c3);border:1px solid var(--emb);border-radius:13px;margin-bottom:9px"><div><div style="font-weight:700;font-size:13.5px">${s.groupTitle||'—'}</div><div style="font-size:11.5px;color:var(--t3);margin-top:3px">${s.assistantName||'—'} • ${s.attended?Object.keys(s.attended).length:0} حضور</div></div><span class="b b-e" style="animation:bPulse 2s infinite">● مفتوحة</span></div>`).join('');
+}
+
+// ╔══════════════════════════════════════╗
+// ║          POPULATE SELECTS            ║
+// ╚══════════════════════════════════════╝
+function popGroupSelects() {
+  const opts = '<option value="">-- اختر --</option>' + Object.entries(S.groups).map(([id,g]) => `<option value="${id}">${g.title}</option>`).join('');
+  ['st_group','blk_grp','wa_grp'].forEach(id => { const s = el(id); if (s) s.innerHTML = opts; });
+  el('stFgrp').innerHTML = '<option value="">كل المجموعات</option>' + Object.entries(S.groups).map(([id,g]) => `<option value="${id}">${g.title}</option>`).join('');
+  el('gp_asst').innerHTML = '<option value="">-- اختر --</option>' + Object.entries(S.assistants).map(([id,a]) => `<option value="${id}">${a.name}</option>`).join('');
+}
+
+function popCenterSelects() {
+  el('gp_center').innerHTML = '<option value="">-- اختر --</option>' + Object.entries(S.centers).map(([id,c]) => `<option value="${id}">${c.name}</option>`).join('');
+}
+
+function popAssistantSelects() {
+  el('gp_asst').innerHTML = '<option value="">-- اختر --</option>' + Object.entries(S.assistants).map(([id,a]) => `<option value="${id}">${a.name}</option>`).join('');
+}
+
+// ╔══════════════════════════════════════╗
+// ║               CENTERS               ║
+// ╚══════════════════════════════════════╝
+async function addCenter() {
+  const name = el('cn_name').value.trim();
+  if (!name) { showFb('cnFb','اسم السنتر مطلوب','err'); return; }
+  await db.ref('app_configurations/centers').push({ name, address:el('cn_addr').value.trim(), phone:el('cn_phone').value.trim(), note:el('cn_note').value.trim(), created:Date.now() });
+  await logOp('center_add', `إضافة سنتر: ${name}`);
+  showFb('cnFb', `✅ تم إضافة: ${name}`, 'ok');
+  toast(`تم إضافة ${name}`, 'ok');
+  ['cn_name','cn_addr','cn_phone','cn_note'].forEach(id => el(id).value = '');
+}
+
+function renderCenterList() {
+  const e = el('cnList'); if (!e) return;
+  const list = Object.entries(S.centers);
+  if (!list.length) { e.innerHTML = '<div class="empty-state"><i class="fa-solid fa-building"></i><p>لا توجد سناتر مضافة بعد</p></div>'; return; }
+  e.innerHTML = list.map(([cid,c]) => `
+    <div class="row-card">
+      <div class="rc-info"><div class="rc-name">${c.name}</div><div class="rc-meta">${c.address||'—'}${c.phone?' • '+c.phone:''}</div></div>
+      <div class="bic" onclick="delCenter('${cid}','${(c.name||'').replace(/'/g,'')}')"><i class="fa-solid fa-trash" style="color:var(--ro)"></i></div>
+    </div>`).join('');
+}
+
+async function delCenter(id, name) {
+  if (!confirm(`حذف السنتر "${name}"؟`)) return;
+  await db.ref(`app_configurations/centers/${id}`).remove();
+  toast(`تم حذف ${name}`, 'warn');
+}
+
+// ╔══════════════════════════════════════╗
+// ║               GROUPS                 ║
+// ╚══════════════════════════════════════╝
+async function addGroup() {
+  const title = el('gp_title').value.trim();
+  if (!title) { showFb('gpFb','اسم المجموعة مطلوب','err'); return; }
+  await db.ref('app_configurations/groups').push({
+    title, subject:el('gp_subj').value, stage:el('gp_stage').value,
+    center_id:el('gp_center').value, assistant_id:el('gp_asst').value||null,
+    day:el('gp_day').value, time:el('gp_time').value,
+    max:parseInt(el('gp_max').value)||40, price:parseInt(el('gp_price').value)||0,
+    created:Date.now()
+  });
+  await logOp('group_add', `إضافة مجموعة: ${title}`);
+  showFb('gpFb', `✅ تمت إضافة: ${title}`, 'ok');
+  toast(`تمت إضافة ${title}`, 'ok');
+}
+
+function renderGroupsList() {
+  const e = el('gpList'); if (!e) return;
+  const list = Object.entries(S.groups);
+  if (!list.length) { e.innerHTML = '<div class="empty-state"><i class="fa-solid fa-layer-group"></i><p>لا توجد مجموعات مضافة بعد</p></div>'; return; }
+  e.innerHTML = list.map(([gid, g]) => {
+    const cnt = Object.values(S.students).filter(s => s.group_reference === gid).length;
+    const cName = S.centers[g.center_id]?.name || '—';
+    const aName = S.assistants[g.assistant_id]?.name || '—';
+    return `<div class="row-card">
+      <div class="rc-info">
+        <div class="rc-name">${g.title}</div>
+        <div class="rc-meta">${g.subject||'—'} • ${g.stage||'—'} • ${g.day||'—'} ${g.time||''}</div>
+        <div class="rc-meta" style="color:var(--t4);margin-top:2px">السنتر: ${cName} • المساعد: ${aName}</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
+        <span class="b b-i">${cnt} طالب</span>
+        <div class="bic" onclick="delGroup('${gid}','${(g.title||'').replace(/'/g,'')}')"><i class="fa-solid fa-trash" style="color:var(--ro)"></i></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function delGroup(id, name) {
+  if (!confirm(`حذف "${name}"؟`)) return;
+  await db.ref(`app_configurations/groups/${id}`).remove();
+  toast(`تم حذف ${name}`, 'warn');
+}
+
+// ╔══════════════════════════════════════╗
+// ║             ASSISTANTS               ║
+// ╚══════════════════════════════════════╝
+async function addAssistant() {
+  const name = el('as_name').value.trim(), code = el('as_code').value.trim();
+  if (!name || !code) { showFb('asFb','الاسم والكود مطلوبان','err'); return; }
+  if (Object.values(S.assistants).some(a => a.code === code)) { showFb('asFb','هذا الكود مستخدم بالفعل','err'); return; }
+  await db.ref('app_configurations/assistants').push({ name, code, phone:el('as_phone').value.trim(), note:el('as_note').value.trim(), created:Date.now() });
+  await logOp('assistant_add', `إضافة مساعد: ${name}`);
+  showFb('asFb', `✅ تمت إضافة: ${name}`, 'ok');
+  toast(`تمت إضافة ${name}`, 'ok');
+  ['as_name','as_code','as_phone','as_note'].forEach(id => el(id).value = '');
+}
+
+function renderAssistantList() {
+  const e = el('asList'); if (!e) return;
+  const list = Object.entries(S.assistants);
+  if (!list.length) { e.innerHTML = '<div class="empty-state"><i class="fa-solid fa-users-gear"></i><p>لا يوجد مساعدون بعد</p></div>'; return; }
+  e.innerHTML = list.map(([aid, a]) => {
+    const sessCnt = Object.values(S.sessions).filter(s => s.assistantId === aid).length;
+    const attTot = Object.values(S.sessions).filter(s => s.assistantId === aid).reduce((sum,s) => sum + (s.attended?Object.keys(s.attended).length:0), 0);
+    const myGrps = Object.values(S.groups).filter(g => g.assistant_id === aid).map(g => g.title).join('، ') || '—';
+    return `<div class="row-card">
+      <div class="rc-info">
+        <div class="rc-name">${a.name}</div>
+        <div class="rc-meta">الكود: <span style="font-family:'Poppins';color:var(--in2);font-weight:700">${a.code}</span>${a.phone?' • '+a.phone:''}</div>
+        <div class="rc-meta" style="color:var(--t4);margin-top:2px">المجموعات: ${myGrps}</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
+        <span class="b b-e">${sessCnt} جلسة</span>
+        <span class="b b-i">${attTot} حضور</span>
+        <div class="bic" onclick="delAssistant('${aid}','${(a.name||'').replace(/'/g,'')}')"><i class="fa-solid fa-trash" style="color:var(--ro)"></i></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function delAssistant(id, name) {
+  if (!confirm(`حذف "${name}"؟`)) return;
+  await db.ref(`app_configurations/assistants/${id}`).remove();
+  toast(`تم حذف ${name}`, 'warn');
+}
+
+// ╔══════════════════════════════════════╗
+// ║              STUDENTS                ║
+// ╚══════════════════════════════════════╝
+async function genUID() {
+  const y = new Date().getFullYear();
+  const existing = Object.values(S.students).map(s => s.uid).filter(Boolean);
+  let n = 1;
+  while (existing.includes(`BS-${y}-${String(n).padStart(4,'0')}`)) n++;
+  return `BS-${y}-${String(n).padStart(4,'0')}`;
+}
+
+document.querySelector('[data-v="v-students"]').addEventListener('click', async () => {
+  if (!el('st_uid').value) el('st_uid').value = await genUID();
+});
+
+async function addStudent() {
+  const name = el('st_name').value.trim();
+  if (!name) { showFb('stFb','الاسم مطلوب','err'); return; }
+  const uid = el('st_uid').value || await genUID();
+  if (Object.values(S.students).some(s => s.uid === uid)) { showFb('stFb','رقم الطالب موجود بالفعل','err'); return; }
+  const ref = db.ref('students_directory').push();
+  await ref.set({
+    uid, name, parent_phone:el('st_pph').value.trim(), student_phone:el('st_sph').value.trim(),
+    group_reference:el('st_group').value||null, grade:el('st_grade').value, gender:el('st_gender').value,
+    wallet_balance:parseInt(el('st_bal').value)||1, registration_date:new Date().toISOString().slice(0,10), status:el('st_status').value||'active'
+  });
+  await logOp('student_add', `إضافة طالب: ${name} (${uid})`);
+  await pushNotif('student', `طالب جديد: ${name} — ${uid}`, 'fa-user-plus', 'var(--in2)');
+  showFb('stFb', `✅ تم الإضافة — UID: ${uid}`, 'ok');
+  toast(`تم إضافة ${name}`, 'ok');
+  ['st_name','st_sph','st_pph'].forEach(id => el(id).value = '');
+  el('st_bal').value = '1';
+  el('st_uid').value = await genUID();
+}
+
+function renderStudents() {
+  const tbody = el('stTbody'); if (!tbody) return;
+  const src = (el('stSearch')?.value || '').toLowerCase();
+  const fgrp = el('stFgrp')?.value || '';
+  const fstat = el('stFstat')?.value || '';
+  const list = Object.entries(S.students).filter(([,s]) => {
+    const ms = !src || (s.name||'').toLowerCase().includes(src) || (s.uid||'').toLowerCase().includes(src);
+    const mg = !fgrp || s.group_reference === fgrp;
+    const mst = !fstat || s.status === fstat;
+    return ms && mg && mst;
+  });
+  if (!list.length) { tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><i class="fa-solid fa-magnifying-glass"></i><p>لا توجد نتائج</p></div></td></tr>`; return; }
+  const statusMap = { active:'b-e نشط', suspended:'b-r موقوف', graduated:'b-n متخرج', pending:'b-a قيد الانتظار', frozen:'b-s مجمد', archived:'b-n مؤرشف' };
+  tbody.innerHTML = list.map(([fid, s]) => {
+    const grpName = S.groups[s.group_reference]?.title || '—';
+    const bc = s.wallet_balance <= 0 ? 'b-r' : s.wallet_balance <= 2 ? 'b-a' : 'b-e';
+    const [sc, sl] = (statusMap[s.status||'active'] || 'b-e نشط').split(' ');
+    return `<tr>
+      <td><span class="tduid">${s.uid||'—'}</span></td>
+      <td class="tdname">${s.name||'—'}</td>
+      <td style="font-size:12px;color:var(--t2)">${grpName}</td>
+      <td style="font-size:11.5px;color:var(--t3)">${s.grade||'—'}</td>
+      <td style="font-size:12.5px">${s.parent_phone||'—'}</td>
+      <td><span class="b ${bc}">${s.wallet_balance||0}</span></td>
+      <td><span class="b ${sc}">${sl}</span></td>
+      <td><div class="bic" onclick="openQrModal('${fid}','${s.uid}','${(s.name||'').replace(/'/g,'').replace(/"/g,'')}')" title="QR"><i class="fa-solid fa-qrcode"></i></div></td>
+      <td><div style="display:flex;gap:5px">
+        <div class="bic" onclick="openEditSt('${fid}')" title="تعديل"><i class="fa-solid fa-pen"></i></div>
+        <div class="bic" onclick="delStudent('${fid}','${(s.name||'').replace(/'/g,'')}')"><i class="fa-solid fa-trash" style="color:var(--ro)"></i></div>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+function openEditSt(fid) {
+  const s = S.students[fid]; if (!s) return;
+  el('esFid').value = fid; el('esName').value = s.name||''; el('esPph').value = s.parent_phone||''; el('esSph').value = s.student_phone||''; el('esStatus').value = s.status||'active';
+  el('esGrp').innerHTML = '<option value="">بدون</option>' + Object.entries(S.groups).map(([id,g]) => `<option value="${id}"${s.group_reference===id?' selected':''}>${g.title}</option>`).join('');
+  el('esGrade').value = s.grade||'';
+  openM('M_editSt');
+}
+
+async function saveEditSt() {
+  const fid = el('esFid').value;
+  const d = { name:el('esName').value, parent_phone:el('esPph').value, student_phone:el('esSph').value, group_reference:el('esGrp').value||null, grade:el('esGrade').value, status:el('esStatus').value };
+  await db.ref(`students_directory/${fid}`).update(d);
+  await logOp('student_edit', `تعديل بيانات: ${d.name}`);
+  closeM('M_editSt'); toast('تم حفظ التعديلات', 'ok');
+}
+
+async function delStudent(fid, name) {
+  if (!confirm(`حذف "${name}"؟`)) return;
+  await db.ref(`students_directory/${fid}`).remove();
+  await logOp('student_delete', `حذف طالب: ${name}`);
+  toast(`تم حذف ${name}`, 'warn');
+}
+
+function openQrModal(fid, uid, name) {
+  const inner = el('qrInner'); inner.innerHTML = '';
+  new QRCode(inner, { text: uid, width: 190, height: 190, colorDark:'#000', colorLight:'#fff' });
+  el('qrLabel').textContent = `${name} — ${uid}`;
+  openM('M_qr');
+}
+
+function dlQR() {
+  const c = document.querySelector('#qrInner canvas');
+  if (c) { const a = document.createElement('a'); a.download = `QR_${el('qrLabel').textContent}.png`; a.href = c.toDataURL(); a.click(); }
+}
+
+// ╔══════════════════════════════════════╗
+// ║                WALLET                ║
+// ╚══════════════════════════════════════╝
+async function prevWallet() {
+  const uid = el('wl_uid').value.trim();
+  const entry = Object.entries(S.students).find(([,s]) => s.uid === uid);
+  const prev = el('wlPreview');
+  if (entry) { _wlFid = entry[0]; el('wlName').textContent = entry[1].name; el('wlBal').textContent = entry[1].wallet_balance||0; prev.style.display = 'block'; }
+  else { _wlFid = null; prev.style.display = 'none'; }
+}
+
+async function doWallet() {
+  if (!_wlFid) { showFb('wlFb','الطالب غير موجود','err'); return; }
+  const amt = parseInt(el('wl_amt').value);
+  if (!amt || amt < 1) { showFb('wlFb','أدخل عدد صحيح','err'); return; }
+  const act = el('wl_act').value; const s = S.students[_wlFid]; let nb = s.wallet_balance||0;
+  if (act === 'add') nb += amt;
+  else if (act === 'sub') nb = Math.max(0, nb - amt);
+  else nb = amt;
+  await db.ref(`students_directory/${_wlFid}/wallet_balance`).set(nb);
+  await logOp('wallet_edit', `رصيد ${s.name}: ${s.wallet_balance} → ${nb}`);
+  showFb('wlFb', `✅ الرصيد الجديد: ${nb} حصة`, 'ok');
+  toast(`رصيد ${s.name}: ${nb}`, 'ok');
+  prevWallet();
+}
+
+function renderLowBal() {
+  const e = el('lowList'); if (!e) return;
+  const low = Object.entries(S.students).filter(([,s]) => s.wallet_balance <= 2);
+  if (!low.length) { e.innerHTML = '<div style="font-size:13px;color:var(--em2);text-align:center;padding:16px">✅ لا يوجد طلاب بأرصدة منخفضة</div>'; return; }
+  e.innerHTML = low.map(([,s]) => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 13px;background:var(--c3);border:1px solid rgba(244,63,94,.22);border-radius:12px;margin-bottom:8px">
+      <div><div style="font-weight:700;font-size:13px">${s.name}</div><div style="font-size:11.5px;color:var(--t3)">${S.groups[s.group_reference]?.title||'—'} • ${s.uid||'—'}</div></div>
+      <span class="b ${s.wallet_balance===0?'b-r':'b-a'}">${s.wallet_balance} حصة</span>
+    </div>`).join('');
+}
+
+async function doBulk() {
+  const gid = el('blk_grp').value, amt = parseInt(el('blk_amt').value);
+  if (!gid) { showFb('blkFb','اختر مجموعة','err'); return; }
+  if (!amt || amt < 1) { showFb('blkFb','أدخل عدد صحيح','err'); return; }
+  const list = Object.entries(S.students).filter(([,s]) => s.group_reference === gid);
+  if (!list.length) { showFb('blkFb','لا يوجد طلاب في هذه المجموعة','err'); return; }
+  for (const [fid] of list) await db.ref(`students_directory/${fid}/wallet_balance`).transaction(b => (b||0) + amt);
+  const gn = S.groups[gid]?.title || gid;
+  await logOp('bulk_recharge', `شحن جماعي ${amt} حصة — ${gn}`);
+  showFb('blkFb', `✅ تم شحن ${amt} حصة لـ ${list.length} طالب`, 'ok');
+  toast(`شحن جماعي ✅ — ${gn}`, 'ok');
+}
+
+// ╔══════════════════════════════════════╗
+// ║            VOID REQUESTS             ║
+// ╚══════════════════════════════════════╝
+function renderVoids() {
+  db.ref('void_requests').once('value', snap => {
+    const list = snap.val()||{}; const e = el('voidList');
+    const pending = Object.entries(list).filter(([,r]) => r.status === 'pending');
+    if (!pending.length) { e.innerHTML = '<div class="empty-state"><i class="fa-regular fa-circle-check"></i><p>لا توجد طلبات Void معلقة</p></div>'; return; }
+    e.innerHTML = pending.map(([id, r]) => `
+      <div class="row-card" style="flex-direction:column;align-items:flex-start;gap:12px">
+        <div style="width:100%">
+          <div style="font-weight:800;font-size:14px">${r.student_name||r.student_uid}</div>
+          <div style="font-size:12px;color:var(--t2);margin-top:4px">المساعد: ${r.assistant_name||'—'} • ${r.date||''} • ${r.group_title||'—'}</div>
+          <div style="margin-top:9px;background:var(--c4);border-radius:10px;padding:9px 12px;font-size:12.5px;color:var(--t2)">السبب: ${r.reason||'—'}</div>
+        </div>
+        <div style="display:flex;gap:9px">
+          <button class="btn btn-e btn-sm" onclick="approveVoid('${id}')"><i class="fa-solid fa-check"></i> قبول وإعادة الرصيد</button>
+          <button class="btn btn-r btn-sm" onclick="openRjVoid('${id}')"><i class="fa-solid fa-times"></i> رفض</button>
+        </div>
+      </div>`).join('');
+  });
+}
+
+function renderVoidHist() {
+  db.ref('void_requests').limitToLast(20).once('value', snap => {
+    const list = snap.val()||{}; const e = el('voidHist');
+    const done = Object.entries(list).filter(([,r]) => r.status !== 'pending');
+    if (!done.length) { e.innerHTML = '<div class="empty-state"><i class="fa-solid fa-history"></i><p>لا يوجد سجل</p></div>'; return; }
+    e.innerHTML = done.slice(-12).reverse().map(([,r]) => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 13px;background:var(--c3);border-radius:12px;margin-bottom:8px;border:1px solid var(--b1)">
+        <div><div style="font-weight:700;font-size:13px">${r.student_name||r.student_uid}</div><div style="font-size:11.5px;color:var(--t3)">${r.date||''} • ${r.reason||'—'}</div></div>
+        <span class="b ${r.status==='approved'?'b-e':'b-r'}">${r.status==='approved'?'مقبول':'مرفوض'}</span>
+      </div>`).join('');
+  });
+}
+
+async function approveVoid(id) {
+  const snap = await db.ref(`void_requests/${id}`).once('value'); const r = snap.val(); if (!r) return;
+  const entry = Object.entries(S.students).find(([,s]) => s.uid === r.student_uid);
+  if (entry) {
+    await db.ref(`students_directory/${entry[0]}/wallet_balance`).transaction(b => (b||0) + 1);
+    if (r.session_id) await db.ref(`attendance_sessions/${r.session_id}/attended/${entry[0]}`).remove();
+  }
+  await db.ref(`void_requests/${id}`).update({ status:'approved', approved_at:Date.now() });
+  await logOp('void_approved', `قبول Void: ${r.student_name}`);
+  await pushNotif('void', `✅ قبول Void: ${r.student_name}`, 'fa-shield-check', 'var(--em2)');
+  toast('تم قبول طلب Void', 'ok');
+  renderVoids(); renderVoidHist();
+}
+
+function openRjVoid(id) { el('rjvId').value = id; openM('M_rjVoid'); }
+async function submitRjVoid() {
+  const id = el('rjvId').value, rsn = el('rjvRsn').value;
+  await db.ref(`void_requests/${id}`).update({ status:'rejected', reject_reason:rsn, rejected_at:Date.now() });
+  await logOp('void_rejected', 'رفض Void');
+  closeM('M_rjVoid'); toast('تم رفض الطلب', 'warn');
+  renderVoids(); renderVoidHist();
+}
+
+// ╔══════════════════════════════════════╗
+// ║          RECHARGE REQUESTS           ║
+// ╚══════════════════════════════════════╝
+function renderRecharge() {
+  db.ref('recharge_requests').once('value', snap => {
+    const list = snap.val()||{}; const e = el('rchList');
+    const pending = Object.entries(list).filter(([,r]) => r.status === 'pending');
+    if (!pending.length) { e.innerHTML = '<div class="empty-state"><i class="fa-regular fa-circle-check"></i><p>لا توجد طلبات تجديد</p></div>'; return; }
+    e.innerHTML = pending.map(([id, r]) => `
+      <div class="row-card" style="flex-direction:column;align-items:flex-start;gap:12px">
+        <div style="width:100%">
+          <div style="font-weight:800;font-size:14px">${r.student_name||r.student_uid}</div>
+          <div style="font-size:12px;color:var(--t2);margin-top:4px">عدد الحصص: <span style="color:var(--em2);font-weight:900;font-family:'Poppins'">${r.requested_amount}</span> • ${r.date||''}</div>
+          <div style="font-size:12px;color:var(--t3)">هاتف: ${r.parent_phone||'—'}</div>
+        </div>
+        <div style="display:flex;gap:9px">
+          <button class="btn btn-e btn-sm" onclick="approveRch('${id}')"><i class="fa-solid fa-check"></i> موافقة وشحن</button>
+          <button class="btn btn-r btn-sm" onclick="openRjRch('${id}')"><i class="fa-solid fa-times"></i> رفض</button>
+        </div>
+      </div>`).join('');
+  });
+}
+
+async function approveRch(id) {
+  const snap = await db.ref(`recharge_requests/${id}`).once('value'); const r = snap.val(); if (!r) return;
+  const entry = Object.entries(S.students).find(([,s]) => s.uid === r.student_uid);
+  if (entry) await db.ref(`students_directory/${entry[0]}/wallet_balance`).transaction(b => (b||0) + parseInt(r.requested_amount));
+  await db.ref(`recharge_requests/${id}`).update({ status:'approved', approved_at:Date.now() });
+  await logOp('recharge_approved', `شحن ${r.requested_amount} حصة: ${r.student_name}`);
+  await pushNotif('recharge', `✅ شحن رصيد: ${r.student_name}`, 'fa-battery-full', 'var(--em2)');
+  toast('تم شحن الرصيد', 'ok'); renderRecharge();
+}
+
+function openRjRch(id) { el('rjrId').value = id; openM('M_rjRch'); }
+async function submitRjRch() {
+  const id = el('rjrId').value, rsn = el('rjrRsn').value;
+  await db.ref(`recharge_requests/${id}`).update({ status:'rejected', reject_reason:rsn, rejected_at:Date.now() });
+  closeM('M_rjRch'); toast('تم رفض الطلب', 'warn'); renderRecharge();
+}
+
+// ╔══════════════════════════════════════╗
+// ║              SESSIONS                ║
+// ╚══════════════════════════════════════╝
+function renderSessions() {
+  const e = el('sessList'); if (!e) return;
+  const f = el('sessFilter')?.value || 'all';
+  let list = Object.entries(S.sessions).sort(([,a],[,b]) => (b.startTime||0) - (a.startTime||0));
+  if (f === 'open') list = list.filter(([,s]) => s.is_open);
+  else if (f === 'locked') list = list.filter(([,s]) => !s.is_open);
+  if (!list.length) { e.innerHTML = '<div class="empty-state"><i class="fa-solid fa-chalkboard-user"></i><p>لا توجد جلسات</p></div>'; return; }
+  e.innerHTML = list.map(([sid, s]) => {
+    const pr = s.attended ? Object.keys(s.attended).length : 0;
+    const start = s.startTime ? new Date(s.startTime).toLocaleString('ar-EG') : '—';
+    const end = s.endTime ? new Date(s.endTime).toLocaleString('ar-EG') : '—';
+    const isOpen = s.is_open;
+    const canReopen = !isOpen && s.endTime && (Date.now() - s.endTime) < 600000;
+    const dur = s.startTime && s.endTime ? Math.round((s.endTime - s.startTime) / 60000) + ' د' : '—';
+    return `<div class="row-card" style="flex-wrap:wrap;gap:10px">
+      <div class="rc-info">
+        <div class="rc-name">${s.groupTitle||'—'}</div>
+        <div class="rc-meta">المساعد: ${s.assistantName||'—'} • بدأت: ${start}</div>
+        ${!isOpen ? `<div class="rc-meta" style="color:var(--t4)">انتهت: ${end} • مدة: ${dur}</div>` : ''}
+        ${s.notes ? `<div class="rc-meta" style="font-style:italic;margin-top:3px">ملاحظة: ${s.notes}</div>` : ''}
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex-shrink:0">
+        <span class="b ${isOpen?'b-e':'b-n'}">${isOpen?'● مفتوحة':'مقفلة'}</span>
+        <span class="b b-i">${pr} حضور</span>
+        ${s.absent_count ? `<span class="b b-r">${s.absent_count} غياب</span>` : ''}
+        ${canReopen ? `<button class="btn btn-a btn-sm" onclick="reopenSess('${sid}')"><i class="fa-solid fa-lock-open"></i> إعادة فتح</button>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function reopenSess(sid) {
+  const reason = prompt('سبب إعادة فتح الجلسة:'); if (!reason) return;
+  await db.ref(`attendance_sessions/${sid}`).update({ is_open:true, reopened_reason:reason, reopened_at:Date.now() });
+  await logOp('session_reopen', `إعادة فتح جلسة: ${S.sessions[sid]?.groupTitle||sid}`);
+  toast('تم إعادة فتح الجلسة', 'warn');
+}
+
+// ╔══════════════════════════════════════╗
+// ║         WHATSAPP & FOLLOW-UP         ║
+// ╚══════════════════════════════════════╝
+function loadSettings() {
+  db.ref('app_configurations').once('value', snap => {
+    const c = snap.val()||{};
+    if (c.professor_identity) el('cfg_prof').value = c.professor_identity;
+    if (c.whatsapp_number) el('cfg_wa').value = c.whatsapp_number;
+    _waTpls.absent = c.absent_template || 'عزيزي ولي أمر {name}،\nلم يحضر الطالب حصة اليوم.\nمع تحيات {teacher}';
+    _waTpls.low = c.low_template || 'عزيزي ولي أمر {name}،\nرصيد الطالب منخفض، يُرجى التجديد.\nمع تحيات {teacher}';
+    _waTpls.recharge = c.recharge_template || 'عزيزي ولي أمر {name}،\nيُرجى التواصل لتجديد الاشتراك.\nمع تحيات {teacher}';
+    el('cfg_abs').value = _waTpls.absent;
+    el('cfg_low').value = _waTpls.low;
+    el('cfg_rch').value = _waTpls.recharge;
+    el('wa_msg').value = _waTpls.absent;
+  });
+}
+
+function applyWATpl() {
+  const type = el('wa_type').value;
+  const map = { absent:el('cfg_abs')?.value||_waTpls.absent, low:el('cfg_low')?.value||_waTpls.low, recharge:el('cfg_rch')?.value||_waTpls.recharge, custom:'' };
+  if (type !== 'custom') el('wa_msg').value = map[type] || '';
+}
+
+async function loadWAList() {
+  const gid = el('wa_grp').value; const e = el('waList');
+  if (!gid) { e.innerHTML = '<div class="empty-state"><i class="fa-solid fa-users"></i><p>اختر مجموعة أولاً</p></div>'; return; }
+  const type = el('wa_type').value;
+  const profName = (await db.ref('app_configurations/professor_identity').once('value')).val() || 'المدرس';
+  let list = Object.entries(S.students).filter(([,s]) => s.group_reference === gid);
+  if (type === 'absent') {
+    const today = new Date().toISOString().slice(0, 10);
+    const sess = Object.values(S.sessions).find(s => s.groupId === gid && s.startTime && new Date(s.startTime).toISOString().slice(0,10) === today);
+    if (sess) { const att = Object.keys(sess.attended||{}); list = list.filter(([fid]) => !att.includes(fid)); }
+  } else if (type === 'low') list = list.filter(([,s]) => s.wallet_balance <= 2);
+  if (!list.length) { e.innerHTML = '<div class="empty-state"><i class="fa-solid fa-check-circle"></i><p>لا يوجد طلاب مطابقون</p></div>'; return; }
+  const tplRaw = el('wa_msg').value;
+  e.innerHTML = list.map(([,s]) => {
+    const msg = encodeURIComponent((tplRaw||'').replace(/{name}/g,s.name||'').replace(/{teacher}/g,profName));
+    const ph = (s.parent_phone||'').replace(/\D/g,'');
+    const iph = ph.startsWith('0') ? '2'+ph : ph;
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:var(--c3);border:1px solid var(--b1);border-radius:13px;margin-bottom:8px">
+      <div><div style="font-weight:700;font-size:13.5px">${s.name||'—'}</div><div style="font-size:11.5px;color:var(--t3)">${s.parent_phone||'—'} • رصيد: ${s.wallet_balance||0}</div></div>
+      <a href="https://wa.me/${iph}?text=${msg}" target="_blank" class="btn btn-wa btn-sm" style="text-decoration:none"><i class="fa-brands fa-whatsapp"></i> إرسال</a>
+    </div>`;
+  }).join('');
+}
+
+function renderAsstStats() {
+  const e = el('asstStats'); if (!e) return;
+  const list = Object.entries(S.assistants);
+  if (!list.length) { e.innerHTML = '<div class="empty-state"><i class="fa-solid fa-users-gear"></i><p>لا يوجد مساعدون</p></div>'; return; }
+  e.innerHTML = `<div class="tbl"><table><thead><tr><th>المساعد</th><th>الجلسات</th><th>الحضور الكلي</th><th>الغياب الكلي</th><th>المجموعات</th></tr></thead><tbody>${list.map(([aid,a]) => {
+    const ms = Object.values(S.sessions).filter(s => s.assistantId === aid);
+    const ta = ms.reduce((sum,s) => sum + (s.attended?Object.keys(s.attended).length:0), 0);
+    const tab = ms.reduce((sum,s) => sum + (s.absent_count||0), 0);
+    const mg = Object.values(S.groups).filter(g => g.assistant_id === aid).length;
+    return `<tr><td class="tdname">${a.name}</td><td><span class="b b-i">${ms.length}</span></td><td><span class="b b-e">${ta}</span></td><td><span class="b b-r">${tab}</span></td><td><span class="b b-a">${mg}</span></td></tr>`;
+  }).join('')}</tbody></table></div>`;
+}
+
+// ╔══════════════════════════════════════╗
+// ║          REPORTS & EXPORT            ║
+// ╚══════════════════════════════════════╝
+function renderRptLow() {
+  const e = el('rptLow'); if (!e) return;
+  const low = Object.entries(S.students).filter(([,s]) => s.wallet_balance <= 2);
+  if (!low.length) { e.innerHTML = '<div style="font-size:13px;color:var(--em2);text-align:center;padding:12px">✅ لا يوجد طلاب بأرصدة منخفضة</div>'; return; }
+  e.innerHTML = `<div class="tbl"><table><thead><tr><th>#</th><th>الاسم</th><th>المجموعة</th><th>الرصيد</th><th>هاتف ولي الأمر</th></tr></thead><tbody>${low.map(([,s],i) => `<tr><td style="color:var(--t4)">${i+1}</td><td class="tdname">${s.name}</td><td style="font-size:12px;color:var(--t2)">${S.groups[s.group_reference]?.title||'—'}</td><td><span class="b ${s.wallet_balance===0?'b-r':'b-a'}">${s.wallet_balance}</span></td><td style="font-size:12.5px">${s.parent_phone||'—'}</td></tr>`).join('')}</tbody></table></div>`;
+}
+
+function expLowXlsx() {
+  const low = Object.values(S.students).filter(s => s.wallet_balance <= 2);
+  const data = [['#','الاسم','المجموعة','الرصيد','هاتف ولي الأمر']];
+  low.forEach((s,i) => data.push([i+1, s.name, S.groups[s.group_reference]?.title||'—', s.wallet_balance, s.parent_phone||'—']));
+  const ws = XLSX.utils.aoa_to_sheet(data); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'أرصدة منخفضة'); XLSX.writeFile(wb, `BS_LowBalance_${new Date().toISOString().slice(0,10)}.xlsx`);
+}
+
+function expStudentsXlsx() {
+  const data = [['رقم الطالب','الاسم','المجموعة','المرحلة','النوع','هاتف الطالب','ولي الأمر','الرصيد','الحالة']];
+  Object.values(S.students).forEach(s => data.push([s.uid, s.name, S.groups[s.group_reference]?.title||'—', s.grade||'—', s.gender||'—', s.student_phone||'—', s.parent_phone||'—', s.wallet_balance, s.status||'active']));
+  const ws = XLSX.utils.aoa_to_sheet(data); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'الطلاب'); XLSX.writeFile(wb, `BS_Students_${new Date().toISOString().slice(0,10)}.xlsx`);
+  toast('تم تحميل ملف الطلاب', 'ok');
+}
+
+function expAttXlsx() {
+  const data = [['التاريخ','المجموعة','المساعد','اسم الطالب','وقت التسجيل']];
+  Object.values(S.sessions).forEach(s => {
+    const d = s.startTime ? new Date(s.startTime).toLocaleDateString('ar-EG') : '—';
+    if (s.attended) Object.values(s.attended).forEach(a => data.push([d, s.groupTitle||'—', s.assistantName||'—', a.name||'—', a.timestamp?new Date(a.timestamp).toLocaleTimeString('ar-EG'):'—']));
+  });
+  const ws = XLSX.utils.aoa_to_sheet(data); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'الحضور'); XLSX.writeFile(wb, `BS_Attendance_${new Date().toISOString().slice(0,10)}.xlsx`);
+  toast('تم تحميل تقرير الحضور', 'ok');
+}
+
+function expStudentsPdf() {
+  const { jsPDF } = window.jspdf; const doc = new jsPDF();
+  doc.setFontSize(14); doc.text('BROTHERS STUDIO ATTENDANCE SYSTEM', 105, 14, { align:'center' });
+  doc.setFontSize(9); doc.text('Students Report — ' + new Date().toISOString().slice(0,10), 105, 22, { align:'center' });
+  doc.setFontSize(8); let y = 32;
+  Object.values(S.students).forEach((s, i) => { if (y > 284) { doc.addPage(); y = 14; } doc.text(`${i+1}. ${s.uid||''} | ${s.name||''} | Bal: ${s.wallet_balance||0}`, 10, y); y += 7; });
+  doc.save('BS_Students.pdf'); toast('تم تحميل PDF', 'ok');
+}
+
+function expPdf() {
+  const { jsPDF } = window.jspdf; const doc = new jsPDF();
+  doc.setFontSize(14); doc.text('BROTHERS STUDIO ATTENDANCE SYSTEM', 105, 14, { align:'center' });
+  doc.setFontSize(9); doc.text('System Report — ' + new Date().toISOString().slice(0,10), 105, 22, { align:'center' });
+  doc.setFontSize(8); let y = 32;
+  const lines = [`Students: ${Object.keys(S.students).length}`, `Groups: ${Object.keys(S.groups).length}`, `Assistants: ${Object.keys(S.assistants).length}`, `Sessions: ${Object.keys(S.sessions).length}`, '', 'Low Balance Students:'];
+  lines.forEach(l => { doc.text(l, 10, y); y += 7; });
+  Object.values(S.students).filter(s => s.wallet_balance <= 2).forEach(s => { if (y > 284) { doc.addPage(); y = 14; } doc.text(`  - ${s.name} | Bal: ${s.wallet_balance}`, 10, y); y += 7; });
+  doc.save('BS_SystemReport.pdf'); toast('تم تحميل PDF', 'ok');
+}
+
+// ╔══════════════════════════════════════╗
+// ║                LOGS                  ║
+// ╚══════════════════════════════════════╝
+function loadLogs() {
+  db.ref('system_operations_logs').limitToLast(60).once('value', snap => {
+    const list = snap.val()||{}; const e = el('logsList');
+    const items = Object.values(list).reverse();
+    if (!items.length) { e.innerHTML = '<div class="empty-state"><i class="fa-solid fa-scroll"></i><p>لا توجد سجلات بعد</p></div>'; return; }
+    e.innerHTML = items.map(it => `
+      <div style="display:flex;gap:11px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.038);align-items:center">
+        <div style="width:6px;height:6px;border-radius:50%;background:var(--in);box-shadow:0 0 6px var(--in);flex-shrink:0"></div>
+        <div style="flex:1;font-size:12.5px;color:var(--t2)">${it.message||''}</div>
+        <div style="font-size:10.5px;color:var(--t4);font-family:'Poppins';white-space:nowrap">${new Date(it.timestamp||0).toLocaleString('ar-EG')}</div>
+      </div>`).join('');
+  });
+}
+
+// ╔══════════════════════════════════════╗
+// ║              SETTINGS                ║
+// ╚══════════════════════════════════════╝
+async function saveSettings() {
+  const u = {};
+  const prof = el('cfg_prof').value.trim(), wa = el('cfg_wa').value.trim();
+  const admp = el('cfg_admp').value, tchp = el('cfg_tchp').value;
+  const abs = el('cfg_abs').value, low = el('cfg_low').value, rch = el('cfg_rch').value;
+  if (prof) u['app_configurations/professor_identity'] = prof;
+  if (wa) u['app_configurations/whatsapp_number'] = wa;
+  if (admp) u['app_configurations/admin_password'] = admp;
+  if (tchp) u['app_configurations/teacher_password'] = tchp;
+  if (abs) u['app_configurations/absent_template'] = abs;
+  if (low) u['app_configurations/low_template'] = low;
+  if (rch) u['app_configurations/recharge_template'] = rch;
+  await db.ref().update(u);
+  await logOp('settings_save', 'حفظ إعدادات النظام');
+  showFb('cfgFb', '✅ تم حفظ الإعدادات بنجاح', 'ok');
+  toast('تم حفظ الإعدادات', 'ok');
+  _waTpls.absent = abs || _waTpls.absent;
+  _waTpls.low = low || _waTpls.low;
+  _waTpls.recharge = rch || _waTpls.recharge;
+}
+
+// ╔══════════════════════════════════════╗
+// ║          BACKUP & DELETE             ║
+// ╚══════════════════════════════════════╝
+async function doBackup() {
+  const snap = await db.ref().once('value');
+  const blob = new Blob([JSON.stringify(snap.val(), null, 2)], { type:'application/json' });
+  const a = document.createElement('a'); a.download = `BS_Backup_${new Date().toISOString().slice(0,10)}.json`; a.href = URL.createObjectURL(blob); a.click();
+  toast('تم تحميل النسخة الاحتياطية', 'ok');
+}
+
+function openDelModal() { el('delConfirm').value = ''; openM('M_del'); }
+
+async function confirmDel() {
+  if (el('delConfirm').value !== 'DELETE') { toast('اكتب DELETE للتأكيد', 'err'); return; }
+  await Promise.all(['students_directory','attendance_sessions','attendance_ledger','void_requests','recharge_requests','notifications','system_operations_logs'].map(p => db.ref(p).remove()));
+  closeM('M_del'); toast('تم حذف جميع البيانات', 'warn');
+}
+
+// ╔══════════════════════════════════════╗
+// ║              BOOTSTRAP               ║
+// ╚══════════════════════════════════════╝
+if (sessionStorage.getItem('bs_adm')) {
+  document.getElementById('login').style.display = 'none';
+  document.getElementById('APP').style.display = 'block';
+  initApp();
+}
+</script>
+</body>
+</html>
