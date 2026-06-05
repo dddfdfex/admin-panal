@@ -345,6 +345,8 @@ canvas{max-height:248px}
         <div class="ni" data-v="v-recharge" onclick="showV('v-recharge',this)"><div class="ni-ico"><i class="fa-solid fa-battery-full"></i></div>طلبات التجديد<span class="ni-badge" id="rchBadge" style="display:none">0</span></div>
         <div class="ns">المتابعة</div>
         <div class="ni" data-v="v-sessions" onclick="showV('v-sessions',this)"><div class="ni-ico"><i class="fa-solid fa-chalkboard-user"></i></div>الجلسات</div>
+        <div class="ni" data-v="v-homework" onclick="showV('v-homework',this)"><div class="ni-ico"><i class="fa-solid fa-clipboard-list"></i></div>الواجبات<span class="ni-badge" id="hwAdmBadge" style="display:none">0</span></div>
+        <div class="ni" data-v="v-exams" onclick="showV('v-exams',this)"><div class="ni-ico"><i class="fa-solid fa-file-pen"></i></div>درجات الامتحانات</div>
         <div class="ni" data-v="v-wa" onclick="showV('v-wa',this)"><div class="ni-ico"><i class="fa-brands fa-whatsapp"></i></div>واتساب والمتابعة</div>
         <div class="ni" data-v="v-reports" onclick="showV('v-reports',this)"><div class="ni-ico"><i class="fa-solid fa-chart-bar"></i></div>التقارير</div>
         <div class="ns">النظام</div>
@@ -535,6 +537,63 @@ canvas{max-height:248px}
           </div>
         </div>
 
+        <!-- ═══ HOMEWORK ADMIN ═══ -->
+        <div class="view" id="v-homework">
+          <div class="g3">
+            <div class="sc sc-e"><div class="sc-ico ic-e"><i class="fa-solid fa-circle-check"></i></div><div><div class="sc-val" id="hadm_done">0</div><div class="sc-lbl">أدوا الواجب</div></div></div>
+            <div class="sc sc-r"><div class="sc-ico ic-r"><i class="fa-solid fa-circle-xmark"></i></div><div><div class="sc-val" id="hadm_notdone">0</div><div class="sc-lbl">لم يؤدوا الواجب</div></div></div>
+            <div class="sc sc-i"><div class="sc-ico ic-i"><i class="fa-solid fa-percent"></i></div><div><div class="sc-val" id="hadm_rate">—</div><div class="sc-lbl">نسبة الالتزام</div></div></div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="fa-solid fa-list-check" style="color:var(--am)"></i>سجل الواجبات</div>
+              <div class="card-actions">
+                <button class="btn btn-a btn-sm" onclick="expHWXlsx()"><i class="fa-solid fa-file-excel"></i> تصدير Excel</button>
+              </div>
+            </div>
+            <div class="sbar">
+              <div class="si-wrap"><i class="fa-solid fa-magnifying-glass"></i><input class="si" id="hwAdmSearch" placeholder="بحث بالاسم..." oninput="renderHWAdmin()"></div>
+              <select class="F si" id="hwAdmGrp" style="flex:0;min-width:155px" onchange="renderHWAdmin()"><option value="">كل المجموعات</option></select>
+              <select class="F si" id="hwAdmFilter" style="flex:0;min-width:130px" onchange="renderHWAdmin()">
+                <option value="">الكل</option>
+                <option value="done">أدوا الواجب</option>
+                <option value="notdone">لم يؤدوا</option>
+              </select>
+            </div>
+            <div class="tbl"><table><thead><tr><th>#</th><th>الطالب</th><th>المجموعة</th><th>المساعد</th><th>التاريخ</th><th>الحالة</th><th>رسالة الواجب</th><th>ولي الأمر</th></tr></thead><tbody id="hwAdmTbody"></tbody></table></div>
+          </div>
+          <div class="g2">
+            <div class="card"><div class="card-header"><div class="card-title"><i class="fa-solid fa-chart-bar" style="color:var(--am)"></i>معدل الواجبات أسبوعياً</div></div><canvas id="hwAdmChart" height="210"></canvas></div>
+            <div class="card"><div class="card-header"><div class="card-title"><i class="fa-solid fa-chart-pie" style="color:var(--vi)"></i>نسبة الالتزام لكل مجموعة</div></div><canvas id="hwGrpChart" height="210"></canvas></div>
+          </div>
+        </div>
+
+        <!-- ═══ EXAM SCORES ADMIN ═══ -->
+        <div class="view" id="v-exams">
+          <div class="g3">
+            <div class="sc sc-v"><div class="sc-ico ic-v"><i class="fa-solid fa-trophy"></i></div><div><div class="sc-val" id="exadm_avg">—</div><div class="sc-lbl">متوسط الدرجات</div></div></div>
+            <div class="sc sc-e"><div class="sc-ico ic-e"><i class="fa-solid fa-star"></i></div><div><div class="sc-val" id="exadm_top">—</div><div class="sc-lbl">أعلى درجة</div></div></div>
+            <div class="sc sc-r"><div class="sc-ico ic-r"><i class="fa-solid fa-arrow-trend-down"></i></div><div><div class="sc-val" id="exadm_low">—</div><div class="sc-lbl">أدنى درجة</div></div></div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="fa-solid fa-file-pen" style="color:var(--vi)"></i>درجات الامتحانات</div>
+              <div class="card-actions">
+                <button class="btn btn-v btn-sm" onclick="expExamsXlsx()"><i class="fa-solid fa-file-excel"></i> تصدير Excel</button>
+              </div>
+            </div>
+            <div class="sbar">
+              <div class="si-wrap"><i class="fa-solid fa-magnifying-glass"></i><input class="si" id="exAdmSearch" placeholder="بحث بالاسم..." oninput="renderExamsAdmin()"></div>
+              <select class="F si" id="exAdmGrp" style="flex:0;min-width:155px" onchange="renderExamsAdmin()"><option value="">كل المجموعات</option></select>
+            </div>
+            <div class="tbl"><table><thead><tr><th>#</th><th>الطالب</th><th>المجموعة</th><th>المساعد</th><th>التاريخ</th><th>الامتحان</th><th>الدرجة</th><th>من</th><th>النسبة</th><th>التقييم</th><th>ولي الأمر</th></tr></thead><tbody id="exAdmTbody"></tbody></table></div>
+          </div>
+          <div class="g2">
+            <div class="card"><div class="card-header"><div class="card-title"><i class="fa-solid fa-chart-pie" style="color:var(--vi)"></i>توزيع الدرجات</div></div><canvas id="exAdmDist" height="210"></canvas></div>
+            <div class="card"><div class="card-header"><div class="card-title"><i class="fa-solid fa-chart-bar" style="color:var(--in2)"></i>متوسط لكل مجموعة</div></div><canvas id="exAdmGrp" height="210"></canvas></div>
+          </div>
+        </div>
+
         <!-- ═══ WHATSAPP ═══ -->
         <div class="view" id="v-wa">
           <div class="card">
@@ -667,8 +726,9 @@ const db = firebase.database();
 // ╔══════════════════════════════════════╗
 // ║              APP STATE               ║
 // ╚══════════════════════════════════════╝
-const S = { students:{}, groups:{}, assistants:{}, centers:{}, sessions:{} };
+const S = { students:{}, groups:{}, assistants:{}, centers:{}, sessions:{}, homework:{}, exams:{} };
 let C_w = null, C_g = null;
+let _admCharts = {};
 let _notifs = {};
 let _wlFid = null;
 let _waTpls = { absent:'', low:'', recharge:'' };
@@ -762,6 +822,8 @@ const VIEW_META = {
   'v-voids':{ icon:'fa-shield-exclamation', title:'طلبات Void' },
   'v-recharge':{ icon:'fa-battery-full', title:'طلبات التجديد' },
   'v-sessions':{ icon:'fa-chalkboard-user', title:'الجلسات' },
+  'v-homework':{ icon:'fa-clipboard-list', title:'الواجبات' },
+  'v-exams':{ icon:'fa-file-pen', title:'درجات الامتحانات' },
   'v-wa':{ icon:'fa-comment-dots', title:'واتساب والمتابعة' },
   'v-reports':{ icon:'fa-chart-bar', title:'التقارير' },
   'v-logs':{ icon:'fa-scroll', title:'سجل النظام' },
@@ -777,6 +839,8 @@ function showV(vid, navEl) {
   const m = VIEW_META[vid] || { icon:'fa-circle', title: vid };
   el('pgIco').className = `fa-solid ${m.icon} pg-ico`;
   el('pgTitle').textContent = m.title;
+  if (vid === 'v-homework') loadHWAdmin();
+  if (vid === 'v-exams') loadExamsAdmin();
   closeSB();
   if (vid === 'v-sessions') renderSessions();
   if (vid === 'v-logs') loadLogs();
@@ -841,11 +905,19 @@ function initApp() {
 
 function loadAll() {
   db.ref('students_directory').on('value', snap => { S.students = snap.val()||{}; renderStudents(); renderLowBal(); updateStats(); });
-  db.ref('app_configurations/groups').on('value', snap => { S.groups = snap.val()||{}; popGroupSelects(); renderGroupsList(); updateStats(); });
+  db.ref('app_configurations/groups').on('value', snap => { S.groups = snap.val()||{}; popGroupSelects(); renderGroupsList(); updateStats(); populateHWExamGroupFilters(); });
   db.ref('app_configurations/assistants').on('value', snap => { S.assistants = snap.val()||{}; popAssistantSelects(); renderAssistantList(); updateStats(); });
   db.ref('app_configurations/centers').on('value', snap => { S.centers = snap.val()||{}; popCenterSelects(); renderCenterList(); });
   db.ref('attendance_sessions').on('value', snap => { S.sessions = snap.val()||{}; updateStats(); renderLiveSessions(); });
   db.ref('system_operations_logs').limitToLast(15).on('value', snap => { renderFeed(snap.val()||{}); });
+  // NEW: homework & exams realtime
+  db.ref('homework_records').on('value', snap => {
+    S.homework = snap.val()||{};
+    updateHWBadge();
+  });
+  db.ref('exam_scores').on('value', snap => {
+    S.exams = snap.val()||{};
+  });
 }
 
 function initBadgeListeners() {
