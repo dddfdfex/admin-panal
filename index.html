@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Brothers Studio — لوحة الإدارة v5.0</title>
+<title>Aura Studio — لوحة الإدارة v5.0</title>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Tajawal:wght@400;500;700;800;900&family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
@@ -355,7 +355,7 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
 <div id="splash">
   <div class="sp-box">
     <div class="sp-logo-ring"><img src="logo.jpg" class="sp-logo" alt="" onerror="this.parentElement.innerHTML='<i class=\'fa-solid fa-graduation-cap\' style=\'font-size:44px;color:var(--in2)\'></i>'"></div>
-    <div class="sp-name">BROTHERS STUDIO</div>
+    <div class="sp-name">AURA STUDIO</div>
     <div class="sp-tag">Admin Dashboard v5.0</div>
     <div class="sp-dots"><div class="sd"></div><div class="sd"></div><div class="sd"></div></div>
   </div>
@@ -364,7 +364,7 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
 <div id="login">
   <div class="lc">
     <div class="lc-logo-box"><img src="logo.jpg" class="lc-logo" alt="" onerror="this.parentElement.innerHTML='<i class=\'fa-solid fa-shield-halved\' style=\'font-size:38px;color:var(--in2)\'></i>'"></div>
-    <div class="lc-title">Brothers Studio</div>
+    <div class="lc-title">Aura Studio</div>
     <div class="lc-sub">Admin Dashboard v5</div>
     <div class="role-chip"><i class="fa-solid fa-shield-halved"></i> دخول الإدارة</div>
     <div id="lerr" class="Ferr"><i class="fa-solid fa-circle-xmark"></i> كلمة المرور غير صحيحة</div>
@@ -379,7 +379,7 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
   <div id="SB">
     <div class="sb-header">
       <div class="sb-logo"><img src="logo.jpg" alt="" onerror="this.parentElement.innerHTML='<i class=\'fa-solid fa-graduation-cap\' style=\'color:var(--in2);font-size:18px\'></i>'" style="width:100%;height:100%;object-fit:cover;border-radius:9px"></div>
-      <div><div class="sb-brand-name" id="sbBrandName">Brothers Studio</div><div class="sb-brand-tag">Admin Portal v5</div></div>
+      <div><div class="sb-brand-name" id="sbBrandName">Aura Studio</div><div class="sb-brand-tag">Admin Portal v5</div></div>
     </div>
     <div class="sb-user">
       <div class="sb-av"><i class="fa-solid fa-shield-halved"></i></div>
@@ -411,7 +411,7 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
       <div class="ns"></div>
       <div class="ni ni-danger" onclick="doLogout()"><div class="ni-ico" style="background:var(--rog)"><i class="fa-solid fa-right-from-bracket"></i></div>تسجيل الخروج</div>
     </nav>
-    <div class="sb-footer">Brothers Studio v5.0<br>Powered by Zeyad Eldery</div>
+    <div class="sb-footer">Aura Studio v5.0<br>Powered by Zeyad Eldery</div>
   </div>
 
   <div class="main">
@@ -459,7 +459,7 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
         <div class="card">
           <div class="card-header"><div class="card-title"><i class="fa-solid fa-building-circle-arrow-right" style="color:var(--sk2)"></i>إضافة سنتر</div></div>
           <div class="fr2">
-            <div class="fw"><label class="Fl">اسم السنتر *</label><input id="cn_name" class="F" placeholder="Brothers الرئيسي"></div>
+            <div class="fw"><label class="Fl">اسم السنتر *</label><input id="cn_name" class="F" placeholder="Aura الرئيسي"></div>
             <div class="fw"><label class="Fl">العنوان</label><input id="cn_addr" class="F" placeholder="شارع، مدينة"></div>
             <div class="fw"><label class="Fl">رقم الهاتف</label><input id="cn_phone" class="F" placeholder="01xxxxxxxxx"></div>
             <div class="fw"><label class="Fl">ملاحظات</label><input id="cn_note" class="F" placeholder="اختياري"></div>
@@ -742,10 +742,10 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
         <div class="card" style="font-size:12px;color:var(--t3)">
           <div class="card-header"><div class="card-title"><i class="fa-solid fa-circle-info" style="color:var(--sk2)"></i>معلومات النظام</div></div>
           <div style="line-height:2.6;padding:2px 0">
-            <div>النظام: <b style="color:var(--t1)">Brothers Studio Attendance System</b></div>
+            <div>النظام: <b style="color:var(--t1)">Aura Studio Attendance System</b></div>
             <div>الإصدار: <span style="color:var(--in2);font-family:'Poppins';font-weight:700">V5.0.0</span></div>
             <div>المطور: <span style="color:var(--em2);font-weight:700">Zeyad Eldery</span></div>
-            <div style="color:var(--t2)">Powered By Brothers Studio</div>
+            <div style="color:var(--t2)">Powered By Aura Studio</div>
           </div>
         </div>
       </div>
@@ -1566,7 +1566,7 @@ function expAttXlsx(){const data=[['جلسة #','التاريخ','المجموع
 function expSessionsXlsx(){const data=[['جلسة #','التاريخ','المجموعة','المساعد','الحضور','الغياب','مغلقة']];Object.values(S.sessions).sort((a,b)=>(b.startTime||0)-(a.startTime||0)).forEach(s=>{const attCnt=s.attended?Object.keys(s.attended).length:0;const grpSts=Object.values(S.students).filter(st=>st.group_reference===s.groupId).length;data.push([s.session_number||'—',s.startTime?new Date(s.startTime).toLocaleDateString('ar-EG'):'—',s.groupTitle||'—',s.assistantName||'—',attCnt,Math.max(0,grpSts-attCnt),s.is_open?'لا':'نعم']);});const ws=XLSX.utils.aoa_to_sheet(data);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'الجلسات');XLSX.writeFile(wb,`BS_Sessions_${new Date().toISOString().slice(0,10)}.xlsx`);toast('تم التصدير','ok');}
 function expHwXlsx(){const data=[['الطالب','المجموعة','المساعد','التاريخ','جلسة #','الواجب','السبب','ولي الأمر']];Object.values(S.homework).sort((a,b)=>(b.timestamp||0)-(a.timestamp||0)).forEach(h=>data.push([h.student_name||'—',h.group_title||'—',h.assistant_name||'—',h.date||'—',h.session_number||'—',h.done?'أدى':'لم يؤدِ',h.reason||'—',h.parent_phone||'—']));const ws=XLSX.utils.aoa_to_sheet(data);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'الواجبات');XLSX.writeFile(wb,`BS_Homework_${new Date().toISOString().slice(0,10)}.xlsx`);toast('تم التصدير','ok');}
 function expExamsXlsx(){const data=[['الطالب','المجموعة','التاريخ','الامتحان','الدرجة','من','النسبة','التقدير','ولي الأمر']];Object.values(S.exams).sort((a,b)=>(b.timestamp||0)-(a.timestamp||0)).forEach(e=>data.push([e.student_name||'—',e.group_title||'—',e.date||'—',e.exam_title||'—',e.score??'—',e.max_score||'—',(e.pct||0)+'%',e.grade_label||'—',e.parent_phone||'—']));const ws=XLSX.utils.aoa_to_sheet(data);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'الامتحانات');XLSX.writeFile(wb,`BS_Exams_${new Date().toISOString().slice(0,10)}.xlsx`);toast('تم التصدير','ok');}
-function expPdf(){const{jsPDF}=window.jspdf;const doc=new jsPDF();doc.setFontSize(14);doc.text('BROTHERS STUDIO ATTENDANCE SYSTEM',105,14,{align:'center'});doc.setFontSize(9);doc.text('System Report — '+new Date().toISOString().slice(0,10),105,22,{align:'center'});doc.setFontSize(8);let y=32;[`Students: ${Object.keys(S.students).length}`,`Groups: ${Object.keys(S.groups).length}`,`Assistants: ${Object.keys(S.assistants).length}`,`Sessions: ${Object.keys(S.sessions).length}`,'','Low Balance:'].forEach(l=>{doc.text(l,10,y);y+=7;});Object.values(S.students).filter(s=>s.wallet_balance<=2).forEach(s=>{if(y>284){doc.addPage();y=14;}doc.text(`  - ${s.name} | Bal: ${s.wallet_balance}`,10,y);y+=7;});doc.save('BS_SystemReport.pdf');toast('تم تحميل PDF','ok');}
+function expPdf(){const{jsPDF}=window.jspdf;const doc=new jsPDF();doc.setFontSize(14);doc.text('AURA STUDIO ATTENDANCE SYSTEM',105,14,{align:'center'});doc.setFontSize(9);doc.text('System Report — '+new Date().toISOString().slice(0,10),105,22,{align:'center'});doc.setFontSize(8);let y=32;[`Students: ${Object.keys(S.students).length}`,`Groups: ${Object.keys(S.groups).length}`,`Assistants: ${Object.keys(S.assistants).length}`,`Sessions: ${Object.keys(S.sessions).length}`,'','Low Balance:'].forEach(l=>{doc.text(l,10,y);y+=7;});Object.values(S.students).filter(s=>s.wallet_balance<=2).forEach(s=>{if(y>284){doc.addPage();y=14;}doc.text(`  - ${s.name} | Bal: ${s.wallet_balance}`,10,y);y+=7;});doc.save('BS_SystemReport.pdf');toast('تم تحميل PDF','ok');}
 
 /* ── LOGS ── */
 function loadLogs(){db.ref('system_operations_logs').limitToLast(80).once('value',snap=>{const list=snap.val()||{};const e=el('logsList');const items=Object.values(list).reverse();if(!items.length){e.innerHTML='<div class="empty-state"><i class="fa-solid fa-scroll"></i><p>لا توجد سجلات</p></div>';return;}e.innerHTML=items.map(it=>`<div style="display:flex;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04);align-items:center"><div style="width:6px;height:6px;border-radius:50%;background:var(--in);box-shadow:0 0 5px var(--in);flex-shrink:0"></div><div style="flex:1;font-size:12px;color:var(--t2)">${it.message||''}</div><div style="font-size:10px;color:var(--t4);font-family:'Poppins';white-space:nowrap">${new Date(it.timestamp||0).toLocaleString('ar-EG')}</div></div>`).join('');});}
