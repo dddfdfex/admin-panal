@@ -1059,6 +1059,17 @@ function initBadgeListeners(){
   db.ref('swap_requests').on('value',snap=>{const p=Object.values(snap.val()||{}).filter(r=>r.status==='pending').length;const b=el('swapBadge');b.textContent=p;b.style.display=p>0?'flex':'none';});
 }
 
+/* ── STUDENT-IN-GROUP HELPER ── */
+// تتحقق من المجموعة الأولى والثانية معاً
+function studentInGroup(s, gid) {
+  if (s.group_reference === gid) return true;
+  if (s.group_reference_2 === gid) return true;
+  if (s.groups) {
+    return Object.values(s.groups).some(g => g && g.key === gid);
+  }
+  return false;
+}
+
 /* ── UID ENGINE ── */
 function getNextUIDSequential(){
   const existing=Object.values(S.students).map(s=>s.uid).filter(Boolean);
@@ -1093,7 +1104,7 @@ function updateCharts(){
   }
   const ctx2=el('gChart')?.getContext('2d');
   if(ctx2){
-    const lbs=Object.values(S.groups).map(g=>(g.title||'—').slice(0,16));const data=Object.keys(S.groups).map(gid=>Object.values(S.students).filter(s=>s.group_reference===gid).length);
+    const lbs=Object.values(S.groups).map(g=>(g.title||'—').slice(0,16));const data=Object.keys(S.groups).map(gid=>Object.values(S.students).filter(s=>studentInGroup(s,gid)).length);
     if(C_g)C_g.destroy();if(!lbs.length)return;
     C_g=new Chart(ctx2,{type:'doughnut',data:{labels:lbs,datasets:[{data,backgroundColor:['#6366F1','#10B981','#F59E0B','#F43F5E','#8B5CF6','#0EA5E9','#EC4899','#14B8A6'],borderWidth:0,hoverOffset:8}]},options:{responsive:true,cutout:'70%',plugins:{legend:{position:'bottom',labels:{color:'#5A6490',padding:10,font:{size:10.5}}}}}});
   }
@@ -1158,7 +1169,7 @@ function renderGroupsList(){
   const e=el('gpList');if(!e)return;
   const list=Object.entries(S.groups);
   if(!list.length){e.innerHTML='<div class="empty-state"><i class="fa-solid fa-layer-group"></i><p>لا توجد مجموعات</p></div>';return;}
-  e.innerHTML=list.map(([gid,g])=>{const cnt=Object.values(S.students).filter(s=>s.group_reference===gid).length;const cName=S.centers[g.center_id]?.name||'—';const aName=S.assistants[g.assistant_id]?.name||'—';return`<div class="row-card"><div class="rc-info"><div class="rc-name">${g.title}</div><div class="rc-meta">${g.subject||'—'} • ${g.stage||'—'} • ${g.day||'—'} ${g.time||''}</div><div class="rc-meta" style="color:var(--t4);margin-top:2px">السنتر: ${cName} • المساعد: ${aName}</div></div><div style="display:flex;gap:7px;align-items:center;flex-shrink:0"><span class="b b-i">${cnt} طالب</span><div class="bic" onclick="delGroup('${gid}','${(g.title||'').replace(/'/g,'')}')"><i class="fa-solid fa-trash" style="color:var(--ro2)"></i></div></div></div>`;}).join('');
+  e.innerHTML=list.map(([gid,g])=>{const cnt=Object.values(S.students).filter(s=>studentInGroup(s,gid)).length;const cName=S.centers[g.center_id]?.name||'—';const aName=S.assistants[g.assistant_id]?.name||'—';return`<div class="row-card"><div class="rc-info"><div class="rc-name">${g.title}</div><div class="rc-meta">${g.subject||'—'} • ${g.stage||'—'} • ${g.day||'—'} ${g.time||''}</div><div class="rc-meta" style="color:var(--t4);margin-top:2px">السنتر: ${cName} • المساعد: ${aName}</div></div><div style="display:flex;gap:7px;align-items:center;flex-shrink:0"><span class="b b-i">${cnt} طالب</span><div class="bic" onclick="delGroup('${gid}','${(g.title||'').replace(/'/g,'')}')"><i class="fa-solid fa-trash" style="color:var(--ro2)"></i></div></div></div>`;}).join('');
 }
 async function delGroup(id,name){if(!confirm(`حذف "${name}"؟`))return;await db.ref(`app_configurations/groups/${id}`).remove();toast(`تم حذف ${name}`,'warn');}
 
@@ -1199,7 +1210,7 @@ function renderStudents(){
   const fstat=el('stFstat')?.value||'';
   const list=Object.entries(S.students).filter(([,s])=>{
     const ms=!src||(s.name||'').toLowerCase().includes(src)||(s.uid||'').toLowerCase().includes(src);
-    const mg=!fgrp||s.group_reference===fgrp;
+    const mg=!fgrp||studentInGroup(s,fgrp);
     const mst=!fstat||s.status===fstat;
     return ms&&mg&&mst;
   });
@@ -1224,7 +1235,7 @@ function dlQR(){const c=document.querySelector('#qrInner canvas');if(c){const a=
 async function prevWallet(){const uid=el('wl_uid').value.trim();const entry=Object.entries(S.students).find(([,s])=>s.uid===uid);const prev=el('wlPreview');if(entry){_wlFid=entry[0];el('wlName').textContent=entry[1].name;el('wlBal').textContent=entry[1].wallet_balance||0;prev.style.display='block';}else{_wlFid=null;prev.style.display='none';}}
 async function doWallet(){if(!_wlFid){showFb('wlFb','الطالب غير موجود','err');return;}const amt=parseInt(el('wl_amt').value);if(!amt||amt<1){showFb('wlFb','أدخل عدد صحيح','err');return;}const act=el('wl_act').value;const s=S.students[_wlFid];let nb=s.wallet_balance||0;if(act==='add')nb+=amt;else if(act==='sub')nb=Math.max(0,nb-amt);else nb=amt;await db.ref(`students_directory/${_wlFid}/wallet_balance`).set(nb);await logOp('wallet_edit',`رصيد ${s.name}: ${s.wallet_balance} → ${nb}`);showFb('wlFb',`✅ الرصيد الجديد: ${nb}`,'ok');toast(`رصيد ${s.name}: ${nb}`,'ok');prevWallet();}
 function renderLowBal(){const e=el('lowList');if(!e)return;const low=Object.entries(S.students).filter(([,s])=>s.wallet_balance<=2);if(!low.length){e.innerHTML='<div style="font-size:13px;color:var(--em2);text-align:center;padding:14px">✅ لا يوجد أرصدة منخفضة</div>';return;}e.innerHTML=low.map(([,s])=>{const waTxt=applyTplVars(_waTpls.low||'ولي أمر {name}، رصيد طالبك منخفض. يرجى التجديد. تحياتي {teacher}',{name:s.name,balance:s.wallet_balance});const waLink=buildWALink(s.parent_phone,waTxt);return`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 13px;background:var(--c3);border:1px solid rgba(244,63,94,.2);border-radius:12px;margin-bottom:8px"><div><div style="font-weight:700;font-size:13px">${s.name}</div><div style="font-size:11px;color:var(--t3)">${S.groups[s.group_reference]?.title||'—'} • ${s.uid||'—'}</div></div><div style="display:flex;gap:7px;align-items:center"><span class="b ${s.wallet_balance===0?'b-r':'b-a'}">${s.wallet_balance} حصة</span>${waLink?`<a href="${waLink}" target="_blank" class="bic bic-wa"><i class="fa-brands fa-whatsapp"></i></a>`:''}</div></div>`;}).join('');}
-async function doBulk(){const gid=el('blk_grp').value,amt=parseInt(el('blk_amt').value);if(!gid){showFb('blkFb','اختر مجموعة','err');return;}if(!amt||amt<1){showFb('blkFb','أدخل عدد','err');return;}const list=Object.entries(S.students).filter(([,s])=>s.group_reference===gid);if(!list.length){showFb('blkFb','لا طلاب في هذه المجموعة','err');return;}for(const[fid]of list)await db.ref(`students_directory/${fid}/wallet_balance`).transaction(b=>(b||0)+amt);const gn=S.groups[gid]?.title||gid;await logOp('bulk_recharge',`شحن ${amt} حصة — ${gn}`);showFb('blkFb',`✅ تم شحن ${amt} حصة لـ ${list.length} طالب`,'ok');toast(`شحن جماعي ✅`,'ok');}
+async function doBulk(){const gid=el('blk_grp').value,amt=parseInt(el('blk_amt').value);if(!gid){showFb('blkFb','اختر مجموعة','err');return;}if(!amt||amt<1){showFb('blkFb','أدخل عدد','err');return;}const list=Object.entries(S.students).filter(([,s])=>studentInGroup(s,gid));if(!list.length){showFb('blkFb','لا طلاب في هذه المجموعة','err');return;}for(const[fid]of list)await db.ref(`students_directory/${fid}/wallet_balance`).transaction(b=>(b||0)+amt);const gn=S.groups[gid]?.title||gid;await logOp('bulk_recharge',`شحن ${amt} حصة — ${gn}`);showFb('blkFb',`✅ تم شحن ${amt} حصة لـ ${list.length} طالب`,'ok');toast(`شحن جماعي ✅`,'ok');}
 
 /* ── VOID ── */
 function renderVoids(){db.ref('void_requests').once('value',snap=>{const list=snap.val()||{};const e=el('voidList');const pending=Object.entries(list).filter(([,r])=>r.status==='pending');if(!pending.length){e.innerHTML='<div class="empty-state"><i class="fa-regular fa-circle-check"></i><p>لا توجد طلبات Void معلقة</p></div>';return;}e.innerHTML=pending.map(([id,r])=>`<div class="row-card" style="flex-direction:column;align-items:flex-start;gap:11px"><div style="width:100%"><div style="font-weight:800;font-size:13.5px">${r.student_name||r.student_uid}</div><div style="font-size:11.5px;color:var(--t2);margin-top:4px">المساعد: ${r.assistant_name||'—'} • ${r.date||''} • ${r.group_title||'—'}${r.session_number?' • جلسة #'+r.session_number:''}</div><div style="margin-top:8px;background:var(--c4);border-radius:9px;padding:8px 11px;font-size:12px;color:var(--t2)">السبب: ${r.reason||'—'}</div></div><div style="display:flex;gap:8px"><button class="btn btn-e btn-sm" onclick="approveVoid('${id}')"><i class="fa-solid fa-check"></i> قبول وإعادة الرصيد</button><button class="btn btn-r btn-sm" onclick="openRjVoid('${id}')"><i class="fa-solid fa-times"></i> رفض</button></div></div>`).join('');});}
@@ -1333,7 +1344,7 @@ function renderSessions(){
   if(!list.length){e.innerHTML='<div class="empty-state"><i class="fa-solid fa-chalkboard-user"></i><p>لا توجد جلسات</p></div>';return;}
   e.innerHTML=list.map(([sid,s])=>{
     const attCnt=s.attended?Object.keys(s.attended).length:0;
-    const grpSts=Object.values(S.students).filter(st=>st.group_reference===s.groupId).length;
+    const grpSts=Object.values(S.students).filter(st=>studentInGroup(st,s.groupId)).length;
     const dur=s.startTime&&s.endTime?Math.round((s.endTime-s.startTime)/60000)+'د':'جارية';
     const dateStr=s.startTime?new Date(s.startTime).toLocaleDateString('ar-EG',{day:'numeric',month:'short',year:'numeric'}):'—';
     const absCnt=Math.max(0,grpSts-attCnt);
@@ -1364,7 +1375,7 @@ function openEditSession(sid){
   const s=S.sessions[sid];if(!s)return;
   el('edSessId').value=sid;
   _editSessData={...( s.attended||{})};// clone current attendance
-  const grpSts=Object.entries(S.students).filter(([,st])=>st.group_reference===s.groupId);
+  const grpSts=Object.entries(S.students).filter(([,st])=>studentInGroup(st,s.groupId));
   const isOpen=s.is_open;
   el('edSessInfo').innerHTML=`<strong>${s.groupTitle||'—'}</strong> • ${s.assistantName||'—'} • ${s.startTime?new Date(s.startTime).toLocaleDateString('ar-EG',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}):'—'} • جلسة #${s.session_number||'—'}`;
   el('sessToggleTxt').textContent=isOpen?'إغلاق الجلسة':'فتح الجلسة';
@@ -1405,11 +1416,11 @@ function toggleAtt(sid,fid,present){
 }
 function markAllPresent(){
   const sid=el('edSessId').value;const s=S.sessions[sid];if(!s)return;
-  Object.entries(S.students).filter(([,st])=>st.group_reference===s.groupId).forEach(([fid,st])=>{toggleAtt(sid,fid,true);});
+  Object.entries(S.students).filter(([,st])=>studentInGroup(st,s.groupId)).forEach(([fid,st])=>{toggleAtt(sid,fid,true);});
 }
 function markAllAbsent(){
   const sid=el('edSessId').value;const s=S.sessions[sid];if(!s)return;
-  Object.entries(S.students).filter(([,st])=>st.group_reference===s.groupId).forEach(([fid])=>{toggleAtt(sid,fid,false);});
+  Object.entries(S.students).filter(([,st])=>studentInGroup(st,s.groupId)).forEach(([fid])=>{toggleAtt(sid,fid,false);});
 }
 async function toggleSessionStatus(){
   const sid=el('edSessId').value;const s=S.sessions[sid];if(!s)return;
@@ -1433,7 +1444,7 @@ async function saveSessionEdits(){
 async function sendAbsentWA(sid){
   const s=S.sessions[sid];if(!s)return;
   const attended=s.attended||{};
-  const grpSts=Object.entries(S.students).filter(([,st])=>st.group_reference===s.groupId);
+  const grpSts=Object.entries(S.students).filter(([,st])=>studentInGroup(st,s.groupId));
   const absent=grpSts.filter(([fid])=>!attended[fid]);
   if(!absent.length){toast('لا يوجد غائبون','info');return;}
   const tpl=_waTpls.absent||'ولي أمر {name}، لم يحضر طالبك اليوم. تحيات {teacher}';
@@ -1460,7 +1471,7 @@ function renderAsstTracker(){
     const mySessions=Object.values(S.sessions).filter(s=>s.assistantId===aid);
     const myGroups=Object.entries(S.groups).filter(([,g])=>g.assistant_id===aid);
     const totalAtt=mySessions.reduce((sum,s)=>sum+(s.attended?Object.keys(s.attended).length:0),0);
-    const totalAbs=mySessions.reduce((sum,s)=>{const gSts=Object.values(S.students).filter(st=>st.group_reference===s.groupId).length;return sum+Math.max(0,gSts-(s.attended?Object.keys(s.attended).length:0));},0);
+    const totalAbs=mySessions.reduce((sum,s)=>{const gSts=Object.values(S.students).filter(st=>studentInGroup(st,s.groupId)).length;return sum+Math.max(0,gSts-(s.attended?Object.keys(s.attended).length:0));},0);
     const totalHW=Object.values(S.homework).filter(h=>h.assistant_id===aid).length;
     const hwDone=Object.values(S.homework).filter(h=>h.assistant_id===aid&&h.done).length;
     const hwMiss=totalHW-hwDone;
@@ -1502,7 +1513,7 @@ function renderAsstTracker(){
         <div class="asst-groups">${myGroups.map(([,g])=>`<span class="b b-i">${g.title}</span>`).join('')||'<span class="b b-n">لا توجد مجموعات</span>'}</div>
       </div>
       ${lastSess?`<div style="font-size:11px;color:var(--t3);font-weight:700;margin-bottom:6px">آخر 5 جلسات</div>
-      <div class="asst-sessions-list">${mySessions.sort((a,b)=>(b.startTime||0)-(a.startTime||0)).slice(0,5).map(s=>{const attC=s.attended?Object.keys(s.attended).length:0;const gSts=Object.values(S.students).filter(st=>st.group_reference===s.groupId).length;return`<div class="asst-sess-item"><div style="flex:1;min-width:0"><div style="font-weight:700;font-size:12px">${s.groupTitle||'—'}</div><div style="font-size:10.5px;color:var(--t3)">${s.startTime?new Date(s.startTime).toLocaleDateString('ar-EG'):'—'} • جلسة #${s.session_number||'—'}</div></div><div style="display:flex;gap:5px"><span class="b b-e" style="font-size:9.5px">${attC} حضر</span><span class="b b-r" style="font-size:9.5px">${Math.max(0,gSts-attC)} غاب</span></div></div>`;}).join('')}</div>`:''}
+      <div class="asst-sessions-list">${mySessions.sort((a,b)=>(b.startTime||0)-(a.startTime||0)).slice(0,5).map(s=>{const attC=s.attended?Object.keys(s.attended).length:0;const gSts=Object.values(S.students).filter(st=>studentInGroup(st,s.groupId)).length;return`<div class="asst-sess-item"><div style="flex:1;min-width:0"><div style="font-weight:700;font-size:12px">${s.groupTitle||'—'}</div><div style="font-size:10.5px;color:var(--t3)">${s.startTime?new Date(s.startTime).toLocaleDateString('ar-EG'):'—'} • جلسة #${s.session_number||'—'}</div></div><div style="display:flex;gap:5px"><span class="b b-e" style="font-size:9.5px">${attC} حضر</span><span class="b b-r" style="font-size:9.5px">${Math.max(0,gSts-attC)} غاب</span></div></div>`;}).join('')}</div>`:''}
     </div>`;
   }).join('');
 }
@@ -1512,7 +1523,7 @@ function renderAsstCompChart(){
   const lbs=assistants.map(([,a])=>a.name);
   const sessData=assistants.map(([aid])=>Object.values(S.sessions).filter(s=>s.assistantId===aid).length);
   const attData=assistants.map(([aid])=>Object.values(S.sessions).filter(s=>s.assistantId===aid).reduce((sum,s)=>sum+(s.attended?Object.keys(s.attended).length:0),0));
-  const absData=assistants.map(([aid])=>Object.values(S.sessions).filter(s=>s.assistantId===aid).reduce((sum,s)=>{const gSts=Object.values(S.students).filter(st=>st.group_reference===s.groupId).length;return sum+Math.max(0,gSts-(s.attended?Object.keys(s.attended).length:0));},0));
+  const absData=assistants.map(([aid])=>Object.values(S.sessions).filter(s=>s.assistantId===aid).reduce((sum,s)=>{const gSts=Object.values(S.students).filter(st=>studentInGroup(st,s.groupId)).length;return sum+Math.max(0,gSts-(s.attended?Object.keys(s.attended).length:0));},0));
   if(C_ac)C_ac.destroy();
   if(!lbs.length)return;
   C_ac=new Chart(ctx,{type:'bar',data:{labels:lbs,datasets:[{label:'جلسات',data:sessData,backgroundColor:'rgba(99,102,241,.7)',borderRadius:5},{label:'حضور',data:attData,backgroundColor:'rgba(16,185,129,.7)',borderRadius:5},{label:'غياب',data:absData,backgroundColor:'rgba(244,63,94,.6)',borderRadius:5}]},options:{responsive:true,plugins:{legend:{position:'top',labels:{color:'#9BA8CC',padding:14,font:{size:11}}}},scales:{x:{grid:{display:false},ticks:{color:'#5A6490'}},y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#5A6490'},beginAtZero:true}}}});
@@ -1522,7 +1533,7 @@ function expAsstXlsx(){
   Object.entries(S.assistants).forEach(([aid,a])=>{
     const ms=Object.values(S.sessions).filter(s=>s.assistantId===aid);
     const tA=ms.reduce((sum,s)=>sum+(s.attended?Object.keys(s.attended).length:0),0);
-    const tAb=ms.reduce((sum,s)=>{const g=Object.values(S.students).filter(st=>st.group_reference===s.groupId).length;return sum+Math.max(0,g-(s.attended?Object.keys(s.attended).length:0));},0);
+    const tAb=ms.reduce((sum,s)=>{const g=Object.values(S.students).filter(st=>studentInGroup(st,s.groupId)).length;return sum+Math.max(0,g-(s.attended?Object.keys(s.attended).length:0));},0);
     const tHW=Object.values(S.homework).filter(h=>h.assistant_id===aid).length;
     const hwD=Object.values(S.homework).filter(h=>h.assistant_id===aid&&h.done).length;
     const exs=Object.values(S.exams).filter(ex=>ex.assistant_id===aid);
@@ -1640,7 +1651,7 @@ async function loadWAList(){
   const gid=el('wa_grp')?.value;const e=el('waList');const cnt=el('waCnt');
   if(!gid){e.innerHTML='<div class="empty-state"><i class="fa-brands fa-whatsapp"></i><p>اختر مجموعة أولاً</p></div>';if(cnt)cnt.textContent='0';return;}
   const filter=el('wa_filter')?.value||'all';
-  let list=Object.values(S.students).filter(s=>s.group_reference===gid);
+  let list=Object.values(S.students).filter(s=>studentInGroup(s,gid));
 
   if(filter==='low')list=list.filter(s=>s.wallet_balance<=2);
   else if(filter==='absent'){
@@ -1696,7 +1707,7 @@ function renderRptLow(){const e=el('rptLow');if(!e)return;const low=Object.entri
 function expLowXlsx(){const low=Object.values(S.students).filter(s=>s.wallet_balance<=2);const data=[['#','الاسم','المجموعة','الرصيد','هاتف ولي الأمر']];low.forEach((s,i)=>data.push([i+1,s.name,S.groups[s.group_reference]?.title||'—',s.wallet_balance,s.parent_phone||'—']));const ws=XLSX.utils.aoa_to_sheet(data);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'أرصدة منخفضة');XLSX.writeFile(wb,`BS_LowBalance_${new Date().toISOString().slice(0,10)}.xlsx`);}
 function expStudentsXlsx(){const data=[['رقم الطالب','الاسم','المجموعة','المرحلة','النوع','هاتف الطالب','ولي الأمر','الرصيد','الحالة','تاريخ التسجيل']];Object.values(S.students).forEach(s=>data.push([s.uid,s.name,S.groups[s.group_reference]?.title||'—',s.grade||'—',s.gender||'—',s.student_phone||'—',s.parent_phone||'—',s.wallet_balance,s.status||'active',s.registration_date||'—']));const ws=XLSX.utils.aoa_to_sheet(data);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'الطلاب');XLSX.writeFile(wb,`BS_Students_${new Date().toISOString().slice(0,10)}.xlsx`);toast('تم تحميل ملف الطلاب','ok');}
 function expAttXlsx(){const data=[['جلسة #','التاريخ','المجموعة','المساعد','اسم الطالب','UID','وقت التسجيل']];Object.values(S.sessions).forEach(s=>{const d=s.startTime?new Date(s.startTime).toLocaleDateString('ar-EG'):'—';if(s.attended)Object.values(s.attended).forEach(a=>data.push([s.session_number||'—',d,s.groupTitle||'—',s.assistantName||'—',a.name||'—',a.uid||'—',a.timestamp?new Date(a.timestamp).toLocaleTimeString('ar-EG'):'—']));});const ws=XLSX.utils.aoa_to_sheet(data);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'الحضور');XLSX.writeFile(wb,`BS_Attendance_${new Date().toISOString().slice(0,10)}.xlsx`);toast('تم التحميل','ok');}
-function expSessionsXlsx(){const data=[['جلسة #','التاريخ','المجموعة','المساعد','الحضور','الغياب','مغلقة']];Object.values(S.sessions).sort((a,b)=>(b.startTime||0)-(a.startTime||0)).forEach(s=>{const attCnt=s.attended?Object.keys(s.attended).length:0;const grpSts=Object.values(S.students).filter(st=>st.group_reference===s.groupId).length;data.push([s.session_number||'—',s.startTime?new Date(s.startTime).toLocaleDateString('ar-EG'):'—',s.groupTitle||'—',s.assistantName||'—',attCnt,Math.max(0,grpSts-attCnt),s.is_open?'لا':'نعم']);});const ws=XLSX.utils.aoa_to_sheet(data);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'الجلسات');XLSX.writeFile(wb,`BS_Sessions_${new Date().toISOString().slice(0,10)}.xlsx`);toast('تم التصدير','ok');}
+function expSessionsXlsx(){const data=[['جلسة #','التاريخ','المجموعة','المساعد','الحضور','الغياب','مغلقة']];Object.values(S.sessions).sort((a,b)=>(b.startTime||0)-(a.startTime||0)).forEach(s=>{const attCnt=s.attended?Object.keys(s.attended).length:0;const grpSts=Object.values(S.students).filter(st=>studentInGroup(st,s.groupId)).length;data.push([s.session_number||'—',s.startTime?new Date(s.startTime).toLocaleDateString('ar-EG'):'—',s.groupTitle||'—',s.assistantName||'—',attCnt,Math.max(0,grpSts-attCnt),s.is_open?'لا':'نعم']);});const ws=XLSX.utils.aoa_to_sheet(data);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'الجلسات');XLSX.writeFile(wb,`BS_Sessions_${new Date().toISOString().slice(0,10)}.xlsx`);toast('تم التصدير','ok');}
 function expHwXlsx(){const data=[['الطالب','المجموعة','المساعد','التاريخ','جلسة #','الواجب','السبب','ولي الأمر']];Object.values(S.homework).sort((a,b)=>(b.timestamp||0)-(a.timestamp||0)).forEach(h=>data.push([h.student_name||'—',h.group_title||'—',h.assistant_name||'—',h.date||'—',h.session_number||'—',h.done?'أدى':'لم يؤدِ',h.reason||'—',h.parent_phone||'—']));const ws=XLSX.utils.aoa_to_sheet(data);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'الواجبات');XLSX.writeFile(wb,`BS_Homework_${new Date().toISOString().slice(0,10)}.xlsx`);toast('تم التصدير','ok');}
 function expExamsXlsx(){const data=[['الطالب','المجموعة','التاريخ','الامتحان','الدرجة','من','النسبة','التقدير','ولي الأمر']];Object.values(S.exams).sort((a,b)=>(b.timestamp||0)-(a.timestamp||0)).forEach(e=>data.push([e.student_name||'—',e.group_title||'—',e.date||'—',e.exam_title||'—',e.score??'—',e.max_score||'—',(e.pct||0)+'%',e.grade_label||'—',e.parent_phone||'—']));const ws=XLSX.utils.aoa_to_sheet(data);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'الامتحانات');XLSX.writeFile(wb,`BS_Exams_${new Date().toISOString().slice(0,10)}.xlsx`);toast('تم التصدير','ok');}
 function expPdf(){const{jsPDF}=window.jspdf;const doc=new jsPDF();doc.setFontSize(14);doc.text('AURA STUDIO ATTENDANCE SYSTEM',105,14,{align:'center'});doc.setFontSize(9);doc.text('System Report — '+new Date().toISOString().slice(0,10),105,22,{align:'center'});doc.setFontSize(8);let y=32;[`Students: ${Object.keys(S.students).length}`,`Groups: ${Object.keys(S.groups).length}`,`Assistants: ${Object.keys(S.assistants).length}`,`Sessions: ${Object.keys(S.sessions).length}`,'','Low Balance:'].forEach(l=>{doc.text(l,10,y);y+=7;});Object.values(S.students).filter(s=>s.wallet_balance<=2).forEach(s=>{if(y>284){doc.addPage();y=14;}doc.text(`  - ${s.name} | Bal: ${s.wallet_balance}`,10,y);y+=7;});doc.save('BS_SystemReport.pdf');toast('تم تحميل PDF','ok');}
