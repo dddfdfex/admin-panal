@@ -495,6 +495,20 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
           <div class="card-header"><div class="card-title"><i class="fa-solid fa-layer-group"></i>المجموعات<span class="b b-i" id="gpCnt" style="margin-right:8px">0</span></div></div>
           <div id="gpList"></div>
         </div>
+        <!-- ═ ربط المجموعات ═ -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><i class="fa-solid fa-link" style="color:var(--em2)"></i>ربط المجموعات (الاختيار المزدوج)</div>
+          </div>
+          <p style="font-size:11.5px;color:var(--t3);margin-bottom:13px;line-height:1.9">حدد الأزواج المسموح للطالب باختيارهما معاً — لو فيه أزواج محددة، الطالب هيقدر يختار 2 فقط لو المجموعتان زوج صحيح. لو ماكنش فيه أزواج، الطالب يختار أي 2 بحرية.</p>
+          <div class="fr2">
+            <div class="fw"><label class="Fl">المجموعة الأولى</label><select id="bnd_g1" class="F"><option value="">-- اختر --</option></select></div>
+            <div class="fw"><label class="Fl">المجموعة الثانية</label><select id="bnd_g2" class="F"><option value="">-- اختر --</option></select></div>
+          </div>
+          <button class="btn btn-e btn-sm" style="margin-top:11px" onclick="addBundle()"><i class="fa-solid fa-link"></i> إضافة الزوج</button>
+          <div id="bndFb" class="fb"></div>
+          <div style="margin-top:13px" id="bndList"></div>
+        </div>
       </div>
 
       <!-- ═══ ASSISTANTS ═══ -->
@@ -887,7 +901,7 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
 <div class="modal" id="M_del">
   <div class="mbox mbox-narrow">
     <div class="m-title"><i class="fa-solid fa-triangle-exclamation" style="color:var(--ro2)"></i> تأكيد الحذف</div>
-    <p style="font-size:13px;color:var(--t2);margin-bottom:14px;line-height:1.9">هذا الإجراء سيحذف <strong style="color:var(--ro2)">جميع البيانات</strong> بشكل نهائي.</p>
+    <p style="font-size:13px;color:var(--t2);margin-bottom:14px;line-height:1.9">هذا الإجراء سيحذف <strong style="color:var(--ro2)">جميع البيانات</strong> بشكل نهائي — بما في ذلك الطلاب، الجلسات، <strong style="color:var(--ro2)">نتائج الامتحانات</strong>، <strong style="color:var(--ro2)">الواجبات</strong>، والإشعارات.</p>
     <label class="Fl">اكتب DELETE للتأكيد</label>
     <input id="delConfirm" class="F" placeholder="DELETE" autocomplete="off">
     <div class="m-actions">
@@ -903,7 +917,7 @@ if(!firebase.apps.length)firebase.initializeApp(_FC);
 const db=firebase.database();
 
 /* ── STATE ── */
-const S={students:{},groups:{},assistants:{},centers:{},sessions:{},homework:{},exams:{}};
+const S={students:{},groups:{},assistants:{},centers:{},sessions:{},homework:{},exams:{},bundles:{}};
 let _notifs={},_wlFid=null,C_w=null,C_g=null,C_ed=null,C_eg=null,C_ac=null;
 let _waTpls={absent:'',low:'',recharge:'',lowexam:'',nohw:''};
 let _editSessData={};// temp attendance edits
@@ -1006,6 +1020,7 @@ function loadAll(){
   db.ref('system_operations_logs').limitToLast(15).on('value',snap=>{renderFeed(snap.val()||{});});
   db.ref('homework_records').on('value',snap=>{S.homework=snap.val()||{};});
   db.ref('exam_scores').on('value',snap=>{S.exams=snap.val()||{};});
+  db.ref('app_configurations/group_bundles').on('value',snap=>{S.bundles=snap.val()||{};renderBundles();popBundleSelects();});
 }
 function initBadgeListeners(){
   db.ref('void_requests').on('value',snap=>{const p=Object.values(snap.val()||{}).filter(r=>r.status==='pending').length;const b=el('voidBadge');b.textContent=p;b.style.display=p>0?'flex':'none';});
@@ -1070,6 +1085,11 @@ function popGroupSelects(){
   const opts='<option value="">-- اختر --</option>'+Object.entries(S.groups).map(([id,g])=>`<option value="${id}">${g.title}</option>`).join('');
   ['st_group','blk_grp','wa_grp'].forEach(id=>{const s=el(id);if(s)s.innerHTML=opts;});
   const stfg=el('stFgrp');if(stfg)stfg.innerHTML='<option value="">كل المجموعات</option>'+Object.entries(S.groups).map(([id,g])=>`<option value="${id}">${g.title}</option>`).join('');
+  popBundleSelects();
+}
+function popBundleSelects(){
+  const opts='<option value="">-- اختر --</option>'+Object.entries(S.groups).map(([id,g])=>`<option value="${id}">${g.title}${g.day?' — '+g.day:''}</option>`).join('');
+  ['bnd_g1','bnd_g2'].forEach(id=>{const s=el(id);if(s)s.innerHTML=opts;});
 }
 function popCenterSelects(){el('gp_center').innerHTML='<option value="">-- اختر --</option>'+Object.entries(S.centers).map(([id,c])=>`<option value="${id}">${c.name}</option>`).join('');}
 function popAssistantSelects(){el('gp_asst').innerHTML='<option value="">-- اختر --</option>'+Object.entries(S.assistants).map(([id,a])=>`<option value="${id}">${a.name}</option>`).join('');}
@@ -1578,7 +1598,39 @@ async function saveSettings(){const u={};const prof=el('cfg_prof').value.trim(),
 /* ── BACKUP ── */
 async function doBackup(){const snap=await db.ref().once('value');const blob=new Blob([JSON.stringify(snap.val(),null,2)],{type:'application/json'});const a=document.createElement('a');a.download=`BS_Backup_${new Date().toISOString().slice(0,10)}.json`;a.href=URL.createObjectURL(blob);a.click();toast('تم التحميل','ok');}
 function openDelModal(){el('delConfirm').value='';openM('M_del');}
-async function confirmDel(){if(el('delConfirm').value!=='DELETE'){toast('اكتب DELETE للتأكيد','err');return;}await Promise.all(['students_directory','attendance_sessions','attendance_ledger','void_requests','recharge_requests','notifications','system_operations_logs'].map(p=>db.ref(p).remove()));closeM('M_del');toast('تم حذف البيانات','warn');}
+async function confirmDel(){if(el('delConfirm').value!=='DELETE'){toast('اكتب DELETE للتأكيد','err');return;}await Promise.all(['students_directory','attendance_sessions','attendance_ledger','void_requests','recharge_requests','notifications','system_operations_logs','exam_scores','homework_records'].map(p=>db.ref(p).remove()));closeM('M_del');toast('تم حذف البيانات','warn');}
+
+/* ── BUNDLES ── */
+async function addBundle(){
+  const g1=el('bnd_g1').value,g2=el('bnd_g2').value;
+  if(!g1||!g2){showFb('bndFb','اختر مجموعتين','err');return;}
+  if(g1===g2){showFb('bndFb','لا يمكن ربط مجموعة بنفسها','err');return;}
+  const exists=Object.values(S.bundles).some(b=>(b.group1_id===g1&&b.group2_id===g2)||(b.group1_id===g2&&b.group2_id===g1));
+  if(exists){showFb('bndFb','هذا الزوج موجود بالفعل','err');return;}
+  const g1Name=S.groups[g1]?.title||g1,g2Name=S.groups[g2]?.title||g2;
+  await db.ref('app_configurations/group_bundles').push({group1_id:g1,group2_id:g2,group1_title:g1Name,group2_title:g2Name,created:Date.now()});
+  await logOp('bundle_add',`ربط مجموعات: ${g1Name} + ${g2Name}`);
+  showFb('bndFb',`✅ تم ربط: ${g1Name} + ${g2Name}`,'ok');
+  toast(`تم الربط: ${g1Name} + ${g2Name}`,'ok');
+  el('bnd_g1').value='';el('bnd_g2').value='';
+}
+function renderBundles(){
+  const e=el('bndList');if(!e)return;
+  const list=Object.entries(S.bundles);
+  if(!list.length){e.innerHTML='<div class="empty-state" style="padding:14px 0"><i class="fa-solid fa-link" style="opacity:.13;font-size:22px;display:block;margin-bottom:8px"></i><p style="font-size:12px">لا توجد أزواج محددة — الطلاب يختارون أي مجموعتين</p></div>';return;}
+  e.innerHTML=`<div style="font-size:11px;font-weight:800;color:var(--t3);margin-bottom:9px;letter-spacing:.5px">الأزواج المسموح بها</div>`+list.map(([bid,b])=>
+    `<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 13px;background:var(--c3);border:1px solid var(--emb);border-radius:11px;margin-bottom:7px">
+      <div style="display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:700">
+        <span style="color:var(--em2)">${b.group1_title||b.group1_id}</span>
+        <i class="fa-solid fa-link" style="color:var(--t4);font-size:10px"></i>
+        <span style="color:var(--in2)">${b.group2_title||b.group2_id}</span>
+      </div>
+      <div class="bic" onclick="delBundle('${bid}','${(b.group1_title||'').replace(/'/g,'')}','${(b.group2_title||'').replace(/'/g,'')}')">
+        <i class="fa-solid fa-trash" style="color:var(--ro2)"></i>
+      </div>
+    </div>`).join('');
+}
+async function delBundle(bid,g1,g2){if(!confirm(`حذف ربط "${g1} + ${g2}"؟`))return;await db.ref(`app_configurations/group_bundles/${bid}`).remove();toast('تم حذف الربط','warn');}
 
 /* ── BOOTSTRAP ── */
 if(sessionStorage.getItem('bs_adm')){el('login').style.display='none';el('APP').style.display='block';initApp();}
