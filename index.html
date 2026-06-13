@@ -397,6 +397,7 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
       <div class="ni" data-v="v-wallet" onclick="showV('v-wallet',this)"><div class="ni-ico"><i class="fa-solid fa-wallet"></i></div>المحافظ والرصيد</div>
       <div class="ni" data-v="v-voids" onclick="showV('v-voids',this)"><div class="ni-ico"><i class="fa-solid fa-shield-exclamation"></i></div>طلبات Void<span class="ni-badge" id="voidBadge" style="display:none">0</span></div>
       <div class="ni" data-v="v-recharge" onclick="showV('v-recharge',this)"><div class="ni-ico"><i class="fa-solid fa-battery-full"></i></div>طلبات التجديد<span class="ni-badge" id="rchBadge" style="display:none">0</span></div>
+      <div class="ni" data-v="v-swaps" onclick="showV('v-swaps',this)"><div class="ni-ico"><i class="fa-solid fa-right-left"></i></div>طلبات التبديل<span class="ni-badge" id="swapBadge" style="display:none">0</span></div>
       <div class="ns">التحليل والمتابعة</div>
       <div class="ni" data-v="v-sessions" onclick="showV('v-sessions',this)"><div class="ni-ico"><i class="fa-solid fa-chalkboard-user"></i></div>الجلسات</div>
       <div class="ni" data-v="v-asst-tracker" onclick="showV('v-asst-tracker',this)"><div class="ni-ico"><i class="fa-solid fa-chart-line"></i></div>متابعة المساعدين</div>
@@ -611,6 +612,21 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
       <!-- ═══ RECHARGE ═══ -->
       <div class="view" id="v-recharge">
         <div class="card"><div class="card-header"><div class="card-title"><i class="fa-solid fa-battery-full" style="color:var(--em2)"></i>طلبات التجديد المعلقة</div><button class="btn btn-gh btn-sm" onclick="renderRecharge()"><i class="fa-solid fa-rotate"></i> تحديث</button></div><div id="rchList"></div></div>
+      </div>
+
+      <!-- ═══ SWAPS ═══ -->
+      <div class="view" id="v-swaps">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><i class="fa-solid fa-right-left" style="color:var(--am2)"></i>طلبات التبديل المعلقة</div>
+            <button class="btn btn-gh btn-sm" onclick="renderSwaps()"><i class="fa-solid fa-rotate"></i> تحديث</button>
+          </div>
+          <div id="swapList"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title"><i class="fa-solid fa-clock-rotate-left" style="color:var(--t3)"></i>سجل طلبات التبديل</div></div>
+          <div id="swapHist"></div>
+        </div>
       </div>
 
       <!-- ═══ SESSIONS — Enhanced ═══ -->
@@ -837,6 +853,20 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
   </div>
 </div>
 
+<!-- Swap Reject -->
+<div class="modal" id="M_rjSwap">
+  <div class="mbox mbox-narrow">
+    <div class="m-title"><i class="fa-solid fa-right-left" style="color:var(--ro2)"></i> رفض طلب التبديل</div>
+    <input type="hidden" id="rjSwapId">
+    <label class="Fl">سبب الرفض (سيُرسل للطالب عبر واتساب)</label>
+    <textarea id="rjSwapRsn" class="F" rows="3" placeholder="اختياري — اكتب سبب الرفض..."></textarea>
+    <div class="m-actions">
+      <button class="btn btn-gh btn-sm" onclick="closeM('M_rjSwap')">إلغاء</button>
+      <button class="btn btn-r btn-sm" onclick="submitRjSwap()"><i class="fa-solid fa-times"></i> رفض وإشعار الطالب</button>
+    </div>
+  </div>
+</div>
+
 <!-- Edit Session (NEW) -->
 <div class="modal" id="M_editSess">
   <div class="mbox mbox-wide">
@@ -965,7 +995,7 @@ function doLogout(){sessionStorage.removeItem('bs_adm');location.reload();}
 el('lpass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 
 /* ── VIEWS ── */
-const VM={'v-db':{icon:'fa-gauge-high',title:'لوحة التحكم'},'v-centers':{icon:'fa-building',title:'السناتر'},'v-groups':{icon:'fa-layer-group',title:'المجموعات'},'v-assistants':{icon:'fa-users-gear',title:'المساعدون'},'v-students':{icon:'fa-graduation-cap',title:'الطلاب'},'v-wallet':{icon:'fa-wallet',title:'المحافظ والرصيد'},'v-voids':{icon:'fa-shield-exclamation',title:'طلبات Void'},'v-recharge':{icon:'fa-battery-full',title:'طلبات التجديد'},'v-sessions':{icon:'fa-chalkboard-user',title:'الجلسات'},'v-asst-tracker':{icon:'fa-chart-line',title:'متابعة المساعدين'},'v-homework':{icon:'fa-clipboard-list',title:'الواجبات'},'v-exams':{icon:'fa-file-pen',title:'درجات الامتحانات'},'v-wa':{icon:'fa-comment-dots',title:'رسائل واتساب'},'v-reports':{icon:'fa-chart-bar',title:'التقارير'},'v-logs':{icon:'fa-scroll',title:'سجل النظام'},'v-settings':{icon:'fa-sliders',title:'الإعدادات'},'v-backup':{icon:'fa-database',title:'النسخ الاحتياطي'}};
+const VM={'v-db':{icon:'fa-gauge-high',title:'لوحة التحكم'},'v-centers':{icon:'fa-building',title:'السناتر'},'v-groups':{icon:'fa-layer-group',title:'المجموعات'},'v-assistants':{icon:'fa-users-gear',title:'المساعدون'},'v-students':{icon:'fa-graduation-cap',title:'الطلاب'},'v-wallet':{icon:'fa-wallet',title:'المحافظ والرصيد'},'v-voids':{icon:'fa-shield-exclamation',title:'طلبات Void'},'v-recharge':{icon:'fa-battery-full',title:'طلبات التجديد'},'v-swaps':{icon:'fa-right-left',title:'طلبات التبديل'},'v-sessions':{icon:'fa-chalkboard-user',title:'الجلسات'},'v-asst-tracker':{icon:'fa-chart-line',title:'متابعة المساعدين'},'v-homework':{icon:'fa-clipboard-list',title:'الواجبات'},'v-exams':{icon:'fa-file-pen',title:'درجات الامتحانات'},'v-wa':{icon:'fa-comment-dots',title:'رسائل واتساب'},'v-reports':{icon:'fa-chart-bar',title:'التقارير'},'v-logs':{icon:'fa-scroll',title:'سجل النظام'},'v-settings':{icon:'fa-sliders',title:'الإعدادات'},'v-backup':{icon:'fa-database',title:'النسخ الاحتياطي'}};
 function showV(vid,navEl){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
   document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on'));
@@ -981,6 +1011,7 @@ function showV(vid,navEl){
   if(vid==='v-logs')loadLogs();
   if(vid==='v-voids'){renderVoids();renderVoidHist();}
   if(vid==='v-recharge')renderRecharge();
+  if(vid==='v-swaps'){renderSwaps();renderSwapHist();}
   if(vid==='v-reports')renderRptLow();
   closeSB();
 }
@@ -1025,6 +1056,7 @@ function loadAll(){
 function initBadgeListeners(){
   db.ref('void_requests').on('value',snap=>{const p=Object.values(snap.val()||{}).filter(r=>r.status==='pending').length;const b=el('voidBadge');b.textContent=p;b.style.display=p>0?'flex':'none';});
   db.ref('recharge_requests').on('value',snap=>{const p=Object.values(snap.val()||{}).filter(r=>r.status==='pending').length;const b=el('rchBadge');b.textContent=p;b.style.display=p>0?'flex':'none';});
+  db.ref('swap_requests').on('value',snap=>{const p=Object.values(snap.val()||{}).filter(r=>r.status==='pending').length;const b=el('swapBadge');b.textContent=p;b.style.display=p>0?'flex':'none';});
 }
 
 /* ── UID ENGINE ── */
@@ -1205,6 +1237,87 @@ async function submitRjVoid(){const id=el('rjvId').value,rsn=el('rjvRsn').value;
 function renderRecharge(){db.ref('recharge_requests').once('value',snap=>{const list=snap.val()||{};const e=el('rchList');const pending=Object.entries(list).filter(([,r])=>r.status==='pending');if(!pending.length){e.innerHTML='<div class="empty-state"><i class="fa-regular fa-circle-check"></i><p>لا توجد طلبات تجديد</p></div>';return;}e.innerHTML=pending.map(([id,r])=>`<div class="row-card" style="flex-direction:column;align-items:flex-start;gap:11px"><div style="width:100%"><div style="font-weight:800;font-size:13.5px">${r.student_name||r.student_uid}</div><div style="font-size:11.5px;color:var(--t2);margin-top:4px">الحصص: <span style="color:var(--em2);font-weight:900;font-family:'Poppins'">${r.requested_amount}</span> • ${r.date||''}</div><div style="font-size:11.5px;color:var(--t3)">هاتف: ${r.parent_phone||'—'}</div></div><div style="display:flex;gap:8px"><button class="btn btn-e btn-sm" onclick="approveRch('${id}')"><i class="fa-solid fa-check"></i> موافقة وشحن</button><button class="btn btn-r btn-sm" onclick="rejectRch('${id}')"><i class="fa-solid fa-times"></i> رفض</button></div></div>`).join('');});}
 async function approveRch(id){const snap=await db.ref(`recharge_requests/${id}`).once('value');const r=snap.val();if(!r)return;const entry=Object.entries(S.students).find(([,s])=>s.uid===r.student_uid);if(entry)await db.ref(`students_directory/${entry[0]}/wallet_balance`).transaction(b=>(b||0)+(r.requested_amount||1));await db.ref(`recharge_requests/${id}`).update({status:'approved',approved_at:Date.now()});await logOp('recharge_approved',`شحن ${r.student_name}`);toast('تم الشحن','ok');renderRecharge();}
 async function rejectRch(id){if(!confirm('رفض؟'))return;await db.ref(`recharge_requests/${id}`).update({status:'rejected',rejected_at:Date.now()});toast('تم الرفض','warn');renderRecharge();}
+
+/* ── SWAPS ── */
+function renderSwaps(){
+  db.ref('swap_requests').once('value',snap=>{
+    const list=snap.val()||{};
+    const e=el('swapList');
+    const pending=Object.entries(list).filter(([,r])=>r.status==='pending');
+    if(!pending.length){e.innerHTML='<div class="empty-state"><i class="fa-regular fa-circle-check"></i><p>لا توجد طلبات تبديل معلقة</p></div>';return;}
+    e.innerHTML=pending.map(([id,r])=>{
+      const ph=(r.student_phone||'').replace(/\D/g,'');
+      const iph=ph.startsWith('0')?'2'+ph:ph;
+      const waMsg=encodeURIComponent(`مرحباً ${r.student_name}، تم قبول طلب تبديل مجموعتك من "${r.from_group_title}" إلى "${r.to_group_title}". مع تحيات الإدارة.`);
+      const waLink=iph?`https://wa.me/${iph}?text=${waMsg}`:'';
+      return`<div class="row-card" style="flex-direction:column;align-items:flex-start;gap:11px">
+        <div style="width:100%">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <div style="font-weight:800;font-size:13.5px">${r.student_name}</div>
+            <span class="b b-a" style="font-family:'Poppins'">${r.request_number}</span>
+          </div>
+          <div style="font-size:11.5px;color:var(--t2);margin-bottom:6px">UID: <span style="color:var(--in2);font-weight:700;font-family:'Poppins'">${r.student_uid}</span> • ${r.timestamp?new Date(r.timestamp).toLocaleDateString('ar-EG',{day:'numeric',month:'short'}):'—'}</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+            <span class="b b-r" style="font-size:11px"><i class="fa-solid fa-arrow-right-from-bracket"></i> ${r.from_group_title}</span>
+            <i class="fa-solid fa-arrow-left" style="color:var(--t4);font-size:11px"></i>
+            <span class="b b-e" style="font-size:11px"><i class="fa-solid fa-arrow-right-to-bracket"></i> ${r.to_group_title}</span>
+          </div>
+          <div style="background:var(--c4);border-radius:9px;padding:8px 11px;font-size:12px;color:var(--t2);margin-bottom:10px">السبب: ${r.reason||'—'}</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-e btn-sm" onclick="approveSwap('${id}')"><i class="fa-solid fa-check"></i> قبول التبديل</button>
+          <button class="btn btn-r btn-sm" onclick="openRjSwap('${id}')"><i class="fa-solid fa-times"></i> رفض</button>
+          ${waLink?`<a href="${waLink}" target="_blank" class="btn btn-wa btn-sm"><i class="fa-brands fa-whatsapp"></i> إشعار واتساب</a>`:''}
+        </div>
+      </div>`;
+    }).join('');
+  });
+}
+function renderSwapHist(){
+  db.ref('swap_requests').limitToLast(20).once('value',snap=>{
+    const list=snap.val()||{};const e=el('swapHist');
+    const done=Object.entries(list).filter(([,r])=>r.status!=='pending');
+    if(!done.length){e.innerHTML='<div class="empty-state"><i class="fa-solid fa-history"></i><p>لا يوجد سجل</p></div>';return;}
+    e.innerHTML=done.slice(-12).reverse().map(([,r])=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 13px;background:var(--c3);border-radius:11px;margin-bottom:8px;border:1px solid var(--b1)"><div><div style="font-weight:700;font-size:12.5px">${r.student_name} <span style="font-family:'Poppins';color:var(--t4);font-size:10px">${r.request_number}</span></div><div style="font-size:11px;color:var(--t3)">${r.from_group_title} → ${r.to_group_title}</div></div><span class="b ${r.status==='approved'?'b-e':'b-r'}">${r.status==='approved'?'مقبول':'مرفوض'}</span></div>`).join('');
+  });
+}
+async function approveSwap(id){
+  const snap=await db.ref(`swap_requests/${id}`).once('value');
+  const r=snap.val();if(!r)return;
+  const entry=Object.entries(S.students).find(([,s])=>s.uid===r.student_uid);
+  if(!entry){toast('لم يتم العثور على الطالب','err');return;}
+  const [fid,student]=entry;
+  const slot=r.from_slot||'1';
+  const updates={};
+  if(slot==='1'){
+    updates[`students_directory/${fid}/group_reference`]=r.to_group_key;
+    updates[`students_directory/${fid}/group_title`]=r.to_group_title;
+    if(student.groups?.group_1)updates[`students_directory/${fid}/groups/group_1`]={key:r.to_group_key,title:r.to_group_title};
+  }else{
+    updates[`students_directory/${fid}/group_reference_2`]=r.to_group_key;
+    updates[`students_directory/${fid}/group_title_2`]=r.to_group_title;
+    if(student.groups?.group_2)updates[`students_directory/${fid}/groups/group_2`]={key:r.to_group_key,title:r.to_group_title};
+  }
+  updates[`swap_requests/${id}/status`]='approved';
+  updates[`swap_requests/${id}/approved_at`]=Date.now();
+  await db.ref().update(updates);
+  await pushNotif('swap_approved',`تم قبول تبديل: ${r.student_name} → ${r.to_group_title}`,'fa-right-left','var(--em2)');
+  await logOp('swap_approved',`قبول تبديل ${r.student_name}: ${r.from_group_title} → ${r.to_group_title}`);
+  // واتساب تأكيد للطالب تفتح تلقائياً
+  const ph=(r.student_phone||'').replace(/\D/g,'');const iph=ph.startsWith('0')?'2'+ph:ph;
+  if(iph){const msg=encodeURIComponent(`مرحباً ${r.student_name}، تم قبول طلب تبديل مجموعتك (${r.request_number}) من "${r.from_group_title}" إلى "${r.to_group_title}" بنجاح. مع تحيات الإدارة.`);window.open(`https://wa.me/${iph}?text=${msg}`,'_blank');}
+  toast(`تم قبول تبديل ${r.student_name}`,'ok');renderSwaps();renderSwapHist();
+}
+function openRjSwap(id){el('rjSwapId').value=id;el('rjSwapRsn').value='';openM('M_rjSwap');}
+async function submitRjSwap(){
+  const id=el('rjSwapId').value;const rsn=el('rjSwapRsn').value.trim();
+  const snap=await db.ref(`swap_requests/${id}`).once('value');const r=snap.val();if(!r)return;
+  await db.ref(`swap_requests/${id}`).update({status:'rejected',reject_reason:rsn,rejected_at:Date.now()});
+  await logOp('swap_rejected',`رفض تبديل ${r.student_name}`);
+  const ph=(r.student_phone||'').replace(/\D/g,'');const iph=ph.startsWith('0')?'2'+ph:ph;
+  if(iph){const msg=encodeURIComponent(`مرحباً ${r.student_name}، نأسف لإبلاغك بأنه تم رفض طلب تبديل مجموعتك (${r.request_number})${rsn?' — السبب: '+rsn:''}. مع تحيات الإدارة.`);window.open(`https://wa.me/${iph}?text=${msg}`,'_blank');}
+  closeM('M_rjSwap');toast('تم الرفض','warn');renderSwaps();renderSwapHist();
+}
 
 /* ═══ SESSIONS — Enhanced with Edit ═══ */
 function renderSessions(){
