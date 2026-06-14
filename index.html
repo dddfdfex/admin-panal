@@ -99,6 +99,11 @@ textarea.F{resize:vertical;min-height:76px;line-height:1.7}
 .bic-wa{background:var(--wag);border-color:var(--wab);color:var(--wa)}
 .bic-wa:hover{background:rgba(37,211,102,.2);color:#4ADE80}
 
+/* ══ PAYMENTS ══ */
+.pay-screenshot { max-width: 200px; max-height: 200px; border-radius: 10px; border: 1px solid var(--b1); cursor: pointer; transition: .2s; }
+.pay-screenshot:hover { transform: scale(1.02); border-color: var(--inb); }
+.pay-card { background: var(--c3); border: 1px solid var(--b1); border-radius: 14px; padding: 14px; margin-bottom: 10px; transition: .16s; }
+
 /* ══ BADGES ══ */
 .b{display:inline-flex;align-items:center;gap:4px;padding:3px 11px;border-radius:100px;font-size:10.5px;font-weight:800;white-space:nowrap}
 .b-i{background:var(--ing);color:var(--in2);border:1px solid var(--inb)}
@@ -398,6 +403,7 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
       <div class="ni" data-v="v-voids" onclick="showV('v-voids',this)"><div class="ni-ico"><i class="fa-solid fa-shield-exclamation"></i></div>طلبات Void<span class="ni-badge" id="voidBadge" style="display:none">0</span></div>
       <div class="ni" data-v="v-recharge" onclick="showV('v-recharge',this)"><div class="ni-ico"><i class="fa-solid fa-battery-full"></i></div>طلبات التجديد<span class="ni-badge" id="rchBadge" style="display:none">0</span></div>
       <div class="ni" data-v="v-swaps" onclick="showV('v-swaps',this)"><div class="ni-ico"><i class="fa-solid fa-right-left"></i></div>طلبات التبديل<span class="ni-badge" id="swapBadge" style="display:none">0</span></div>
+      <div class="ni" data-v="v-payments" onclick="showV('v-payments',this)"><div class="ni-ico"><i class="fa-solid fa-credit-card"></i></div>المدفوعات<span class="ni-badge" id="payBadge" style="display:none">0</span></div>
       <div class="ns">التحليل والمتابعة</div>
       <div class="ni" data-v="v-sessions" onclick="showV('v-sessions',this)"><div class="ni-ico"><i class="fa-solid fa-chalkboard-user"></i></div>الجلسات</div>
       <div class="ni" data-v="v-asst-tracker" onclick="showV('v-asst-tracker',this)"><div class="ni-ico"><i class="fa-solid fa-chart-line"></i></div>متابعة المساعدين</div>
@@ -459,10 +465,12 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
       <div class="view" id="v-centers">
         <div class="card">
           <div class="card-header"><div class="card-title"><i class="fa-solid fa-building-circle-arrow-right" style="color:var(--sk2)"></i>إضافة سنتر</div></div>
-          <div class="fr2">
+          <div class="fr3">
             <div class="fw"><label class="Fl">اسم السنتر *</label><input id="cn_name" class="F" placeholder="Aura الرئيسي"></div>
             <div class="fw"><label class="Fl">العنوان</label><input id="cn_addr" class="F" placeholder="شارع، مدينة"></div>
             <div class="fw"><label class="Fl">رقم الهاتف</label><input id="cn_phone" class="F" placeholder="01xxxxxxxxx"></div>
+            <div class="fw"><label class="Fl">رسوم الحجز</label><input id="cn_fee" class="F" type="number" placeholder="قيمة الحجز"></div>
+                            <div class="fw"><label class="Fl">رقم التحويل (كاش)</label><input id="cn_transfer" class="F" placeholder="رقم المحفظة"></div>
             <div class="fw"><label class="Fl">ملاحظات</label><input id="cn_note" class="F" placeholder="اختياري"></div>
           </div>
           <button class="btn btn-p btn-sm" style="margin-top:13px" onclick="addCenter()"><i class="fa-solid fa-plus"></i> إضافة السنتر</button>
@@ -488,6 +496,13 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
             <div class="fw"><label class="Fl">وقت البدء</label><input id="gp_time" class="F" type="time"></div>
             <div class="fw"><label class="Fl">الحد الأقصى</label><input id="gp_max" class="F" type="number" value="40" min="1"></div>
             <div class="fw"><label class="Fl">سعر الحصة</label><input id="gp_price" class="F" type="number" value="0" min="0"></div>
+            <div class="fw" style="display:flex;align-items:center;gap:8px;margin-top:16px">
+              <label class="Fl" style="margin:0">إلزامي؟</label>
+              <label style="display:flex;align-items:center;gap:6px;color:var(--t2);font-size:13px;font-weight:700;cursor:pointer">
+                  <input type="checkbox" id="gp_mandatory" style="accent-color:var(--in);width:17px;height:17px;cursor:pointer">
+                  هذه المجموعة إلزامية
+              </label>
+            </div>
           </div>
           <button class="btn btn-p btn-sm" style="margin-top:13px" onclick="addGroup()"><i class="fa-solid fa-plus"></i> إضافة المجموعة</button>
           <div id="gpFb" class="fb"></div>
@@ -499,16 +514,31 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
         <!-- ═ ربط المجموعات ═ -->
         <div class="card">
           <div class="card-header">
-            <div class="card-title"><i class="fa-solid fa-link" style="color:var(--em2)"></i>ربط المجموعات (الاختيار المزدوج)</div>
+            <div class="card-title"><i class="fa-solid fa-link" style="color:var(--em2)"></i>ربط المجموعات</div>
           </div>
-          <p style="font-size:11.5px;color:var(--t3);margin-bottom:13px;line-height:1.9">حدد الأزواج المسموح للطالب باختيارهما معاً — لو فيه أزواج محددة، الطالب هيقدر يختار 2 فقط لو المجموعتان زوج صحيح. لو ماكنش فيه أزواج، الطالب يختار أي 2 بحرية.</p>
-          <div class="fr2">
-            <div class="fw"><label class="Fl">المجموعة الأولى</label><select id="bnd_g1" class="F"><option value="">-- اختر --</option></select></div>
-            <div class="fw"><label class="Fl">المجموعة الثانية</label><select id="bnd_g2" class="F"><option value="">-- اختر --</option></select></div>
+          <p style="font-size:11.5px;color:var(--t3);margin-bottom:13px;line-height:1.9">
+            أضف مجموعتين أو 3 في نفس الـ bundle — الطالب هيختار من نفس الـ bundle فقط.<br>
+            لو ماكنش فيه bundles، الطالب يختار بحرية.
+          </p>
+
+          <!-- إضافة bundle جديد -->
+          <div style="background:var(--c3);border:1px solid var(--b1);border-radius:12px;padding:14px;margin-bottom:14px">
+            <div style="font-size:12px;font-weight:800;color:var(--t2);margin-bottom:10px">
+              <i class="fa-solid fa-plus" style="color:var(--em2);margin-left:5px"></i>إنشاء bundle جديد
+            </div>
+            <div style="font-size:11px;color:var(--t4);margin-bottom:10px">اختر 2 أو 3 مجموعات:</div>
+            <div class="fr3">
+              <div class="fw"><label class="Fl">المجموعة 1 *</label><select id="bnd_g1" class="F"><option value="">-- اختر --</option></select></div>
+              <div class="fw"><label class="Fl">المجموعة 2 *</label><select id="bnd_g2" class="F"><option value="">-- اختر --</option></select></div>
+              <div class="fw"><label class="Fl">المجموعة 3 <span style="color:var(--t4);font-size:10px">(اختياري)</span></label><select id="bnd_g3" class="F"><option value="">-- بدون --</option></select></div>
+            </div>
+            <div class="fw" style="margin-top:6px"><label class="Fl">اسم الـ bundle <span style="color:var(--t4);font-size:10px">(اختياري)</span></label><input id="bnd_name" class="F" placeholder="مثال: مجموعات الأحد"></div>
+            <button class="btn btn-e btn-sm" style="margin-top:11px" onclick="addBundle()"><i class="fa-solid fa-link"></i> إنشاء الـ Bundle</button>
+            <div id="bndFb" class="fb"></div>
           </div>
-          <button class="btn btn-e btn-sm" style="margin-top:11px" onclick="addBundle()"><i class="fa-solid fa-link"></i> إضافة الزوج</button>
-          <div id="bndFb" class="fb"></div>
-          <div style="margin-top:13px" id="bndList"></div>
+
+          <!-- قائمة الـ bundles -->
+          <div id="bndList"></div>
         </div>
       </div>
 
@@ -542,7 +572,8 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
           <div class="fr3">
             <div class="fw"><label class="Fl">رقم الطالب (UID)</label><input id="st_uid" class="F" readonly style="background:rgba(5,6,13,.75);color:var(--in2);font-family:'Poppins';font-weight:700;cursor:default"></div>
             <div class="fw"><label class="Fl">الاسم الكامل *</label><input id="st_name" class="F" placeholder="اسم الطالب"></div>
-            <div class="fw"><label class="Fl">المجموعة</label><select id="st_group" class="F"><option value="">-- اختر --</option></select></div>
+            <div class="fw"><label class="Fl">المجموعة الأولى</label><select id="st_group" class="F"><option value="">-- اختر --</option></select></div>
+            <div class="fw"><label class="Fl">المجموعة الثانية <span style="color:var(--t4);font-size:10px">(اختياري)</span></label><select id="st_group2" class="F"><option value="">-- بدون --</option></select></div>
             <div class="fw"><label class="Fl">المرحلة الدراسية</label><select id="st_grade" class="F"><option value="">-- اختر --</option><option>الصف الأول الثانوي</option><option>الصف الثاني الثانوي</option><option>الصف الثالث الثانوي</option><option>الصف الأول الإعدادي</option><option>الصف الثاني الإعدادي</option><option>الصف الثالث الإعدادي</option></select></div>
             <div class="fw"><label class="Fl">النوع</label><select id="st_gender" class="F"><option value="">-- اختر --</option><option>ذكر</option><option>أنثى</option></select></div>
             <div class="fw"><label class="Fl">هاتف الطالب</label><input id="st_sph" class="F" placeholder="01xxxxxxxxx"></div>
@@ -750,6 +781,15 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
         <div class="card"><div class="card-header"><div class="card-title"><i class="fa-solid fa-scroll" style="color:var(--am2)"></i>سجل عمليات النظام</div></div><div id="logsList"></div></div>
       </div>
 
+      <!-- ═══ PAYMENTS ═══ -->
+      <div class="view" id="v-payments">
+        <div class="card">
+          <div class="card-header"><div class="card-title"><i class="fa-solid fa-credit-card" style="color:var(--em2)"></i>طلبات الدفع المعلقة</div><button class="btn btn-gh btn-sm" onclick="renderPayments()"><i class="fa-solid fa-rotate"></i> تحديث</button></div>
+          <div id="payList"></div>
+        </div>
+        <div class="card"><div class="card-header"><div class="card-title"><i class="fa-solid fa-clock-rotate-left" style="color:var(--t3)"></i>سجل المدفوعات</div></div><div id="payHist"></div></div>
+      </div>
+
       <!-- ═══ SETTINGS ═══ -->
       <div class="view" id="v-settings">
         <div class="card">
@@ -867,6 +907,73 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
   </div>
 </div>
 
+    <!-- Edit Center -->
+    <div class="modal" id="M_editCn">
+        <div class="mbox">
+            <div class="m-title"><i class="fa-solid fa-pen" style="color:var(--in2)"></i> تعديل بيانات السنتر</div>
+            <input type="hidden" id="ecFid">
+            <div class="fr3">
+                <div class="fw"><label class="Fl">اسم السنتر *</label><input id="ec_name" class="F"></div>
+                <div class="fw"><label class="Fl">العنوان</label><input id="ec_addr" class="F"></div>
+                <div class="fw"><label class="Fl">رقم الهاتف</label><input id="ec_phone" class="F"></div>
+                <div class="fw"><label class="Fl">رسوم الحجز</label><input id="ec_fee" class="F" type="number"></div>
+                <div class="fw"><label class="Fl">رقم التحويل (كاش)</label><input id="ec_transfer" class="F"></div>
+                <div class="fw"><label class="Fl">ملاحظات</label><input id="ec_note" class="F"></div>
+            </div>
+            <div class="m-actions">
+                <button class="btn btn-gh btn-sm" onclick="closeM('M_editCn')">إلغاء</button>
+                <button class="btn btn-p btn-sm" onclick="saveEditCn()"><i class="fa-solid fa-floppy-disk"></i> حفظ</button>
+            </div>
+        </div>
+    </div>
+
+<!-- Edit Group -->
+<div class="modal" id="M_editGrp">
+  <div class="mbox">
+    <div class="m-title"><i class="fa-solid fa-pen" style="color:var(--in2)"></i> تعديل المجموعة</div>
+    <input type="hidden" id="egFid">
+    <div class="fr3">
+      <div class="fw"><label class="Fl">اسم المجموعة *</label><input id="eg_title" class="F" placeholder="كيمياء 3 ثانوي — أ"></div>
+      <div class="fw"><label class="Fl">المادة</label><select id="eg_subj" class="F"><option value="">-- اختر --</option><option>علوم متكاملة</option><option>كيمياء</option><option>فيزياء</option><option>أحياء</option><option>رياضيات</option><option>لغة عربية</option><option>لغة إنجليزية</option><option>تاريخ</option><option>جغرافيا</option><option>أخرى</option></select></div>
+      <div class="fw"><label class="Fl">المرحلة</label><select id="eg_stage" class="F"><option value="">-- اختر --</option><optgroup label="ثانوي"><option>الصف الأول الثانوي</option><option>الصف الثاني الثانوي</option><option>الصف الثالث الثانوي</option></optgroup><optgroup label="إعدادي"><option>الصف الأول الإعدادي</option><option>الصف الثاني الإعدادي</option><option>الصف الثالث الإعدادي</option></optgroup></select></div>
+      <div class="fw"><label class="Fl">السنتر</label><select id="eg_center" class="F"><option value="">-- اختر --</option></select></div>
+      <div class="fw"><label class="Fl">المساعد</label><select id="eg_asst" class="F"><option value="">-- اختر --</option></select></div>
+      <div class="fw"><label class="Fl">اليوم</label><select id="eg_day" class="F"><option value="">-- اختر --</option><option>السبت</option><option>الأحد</option><option>الاثنين</option><option>الثلاثاء</option><option>الأربعاء</option><option>الخميس</option><option>الجمعة</option></select></div>
+      <div class="fw"><label class="Fl">وقت البدء</label><input id="eg_time" class="F" type="time"></div>
+      <div class="fw"><label class="Fl">الحد الأقصى</label><input id="eg_max" class="F" type="number" min="1"></div>
+      <div class="fw"><label class="Fl">سعر الحصة</label><input id="eg_price" class="F" type="number" min="0"></div>
+    </div>
+    <div class="m-actions">
+      <button class="btn btn-gh btn-sm" onclick="closeM('M_editGrp')">إلغاء</button>
+      <div class="fw" style="display:flex;align-items:center;gap:8px">
+          <label class="Fl" style="margin:0">إلزامي؟</label>
+          <label style="display:flex;align-items:center;gap:6px;color:var(--t2);font-size:13px;font-weight:700;cursor:pointer">
+              <input type="checkbox" id="eg_mandatory" style="accent-color:var(--in);width:17px;height:17px;cursor:pointer">
+          </label>
+      </div>
+      <button class="btn btn-p btn-sm" onclick="saveEditGrp()"><i class="fa-solid fa-floppy-disk"></i> حفظ التعديلات</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Bundle -->
+<div class="modal" id="M_editBundle">
+  <div class="mbox mbox-narrow">
+    <div class="m-title"><i class="fa-solid fa-link" style="color:var(--em2)"></i> تعديل الـ Bundle</div>
+    <input type="hidden" id="ebFid">
+    <div class="fw"><label class="Fl">اسم الـ Bundle</label><input id="eb_name" class="F" placeholder="مثال: مجموعات الأحد"></div>
+    <div class="fr3">
+      <div class="fw"><label class="Fl">المجموعة 1 *</label><select id="eb_g1" class="F"><option value="">-- اختر --</option></select></div>
+      <div class="fw"><label class="Fl">المجموعة 2 *</label><select id="eb_g2" class="F"><option value="">-- اختر --</option></select></div>
+      <div class="fw"><label class="Fl">المجموعة 3 <span style="color:var(--t4);font-size:10px">(اختياري)</span></label><select id="eb_g3" class="F"><option value="">-- بدون --</option></select></div>
+    </div>
+    <div class="m-actions">
+      <button class="btn btn-gh btn-sm" onclick="closeM('M_editBundle')">إلغاء</button>
+      <button class="btn btn-e btn-sm" onclick="saveEditBundle()"><i class="fa-solid fa-floppy-disk"></i> حفظ</button>
+    </div>
+  </div>
+</div>
+
 <!-- Edit Session (NEW) -->
 <div class="modal" id="M_editSess">
   <div class="mbox mbox-wide">
@@ -941,6 +1048,20 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
   </div>
 </div>
 
+<!-- Payment Reject -->
+<div class="modal" id="M_rjPay">
+  <div class="mbox mbox-narrow">
+    <div class="m-title"><i class="fa-solid fa-times-circle" style="color:var(--ro2)"></i> رفض الدفع</div>
+    <input type="hidden" id="rjPayId">
+    <label class="Fl">سبب الرفض</label>
+    <textarea id="rjPayRsn" class="F" rows="3" placeholder="سبب رفض الدفع..."></textarea>
+    <div class="m-actions">
+      <button class="btn btn-gh btn-sm" onclick="closeM('M_rjPay')">إلغاء</button>
+      <button class="btn btn-r btn-sm" onclick="submitRjPay()"><i class="fa-solid fa-times"></i> رفض</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const _FC={apiKey:"AIzaSyD971ixQUVYZxTtjAkl7U8bC-ZbsZgCUX4",authDomain:"brothers-studio-attendance.firebaseapp.com",databaseURL:"https://brothers-studio-attendance-default-rtdb.europe-west1.firebasedatabase.app",projectId:"brothers-studio-attendance",storageBucket:"brothers-studio-attendance.firebasestorage.app",messagingSenderId:"149223396857",appId:"1:149223396857:web:2d8629ef8f76581e35d928"};
 if(!firebase.apps.length)firebase.initializeApp(_FC);
@@ -995,7 +1116,7 @@ function doLogout(){sessionStorage.removeItem('bs_adm');location.reload();}
 el('lpass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 
 /* ── VIEWS ── */
-const VM={'v-db':{icon:'fa-gauge-high',title:'لوحة التحكم'},'v-centers':{icon:'fa-building',title:'السناتر'},'v-groups':{icon:'fa-layer-group',title:'المجموعات'},'v-assistants':{icon:'fa-users-gear',title:'المساعدون'},'v-students':{icon:'fa-graduation-cap',title:'الطلاب'},'v-wallet':{icon:'fa-wallet',title:'المحافظ والرصيد'},'v-voids':{icon:'fa-shield-exclamation',title:'طلبات Void'},'v-recharge':{icon:'fa-battery-full',title:'طلبات التجديد'},'v-swaps':{icon:'fa-right-left',title:'طلبات التبديل'},'v-sessions':{icon:'fa-chalkboard-user',title:'الجلسات'},'v-asst-tracker':{icon:'fa-chart-line',title:'متابعة المساعدين'},'v-homework':{icon:'fa-clipboard-list',title:'الواجبات'},'v-exams':{icon:'fa-file-pen',title:'درجات الامتحانات'},'v-wa':{icon:'fa-comment-dots',title:'رسائل واتساب'},'v-reports':{icon:'fa-chart-bar',title:'التقارير'},'v-logs':{icon:'fa-scroll',title:'سجل النظام'},'v-settings':{icon:'fa-sliders',title:'الإعدادات'},'v-backup':{icon:'fa-database',title:'النسخ الاحتياطي'}};
+const VM={'v-db':{icon:'fa-gauge-high',title:'لوحة التحكم'},'v-centers':{icon:'fa-building',title:'السناتر'},'v-groups':{icon:'fa-layer-group',title:'المجموعات'},'v-assistants':{icon:'fa-users-gear',title:'المساعدون'},'v-students':{icon:'fa-graduation-cap',title:'الطلاب'},'v-wallet':{icon:'fa-wallet',title:'المحافظ والرصيد'},'v-voids':{icon:'fa-shield-exclamation',title:'طلبات Void'},'v-recharge':{icon:'fa-battery-full',title:'طلبات التجديد'},'v-swaps':{icon:'fa-right-left',title:'طلبات التبديل'},'v-payments':{icon:'fa-credit-card',title:'المدفوعات'},'v-sessions':{icon:'fa-chalkboard-user',title:'الجلسات'},'v-asst-tracker':{icon:'fa-chart-line',title:'متابعة المساعدين'},'v-homework':{icon:'fa-clipboard-list',title:'الواجبات'},'v-exams':{icon:'fa-file-pen',title:'درجات الامتحانات'},'v-wa':{icon:'fa-comment-dots',title:'رسائل واتساب'},'v-reports':{icon:'fa-chart-bar',title:'التقارير'},'v-logs':{icon:'fa-scroll',title:'سجل النظام'},'v-settings':{icon:'fa-sliders',title:'الإعدادات'},'v-backup':{icon:'fa-database',title:'النسخ الاحتياطي'}};
 function showV(vid,navEl){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
   document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on'));
@@ -1013,6 +1134,7 @@ function showV(vid,navEl){
   if(vid==='v-recharge')renderRecharge();
   if(vid==='v-swaps'){renderSwaps();renderSwapHist();}
   if(vid==='v-reports')renderRptLow();
+  if(vid==='v-payments')renderPayments();
   closeSB();
 }
 function toggleSB(){el('SB').classList.toggle('on');el('sbov').classList.toggle('on');}
@@ -1051,19 +1173,22 @@ function loadAll(){
   db.ref('system_operations_logs').limitToLast(15).on('value',snap=>{renderFeed(snap.val()||{});});
   db.ref('homework_records').on('value',snap=>{S.homework=snap.val()||{};});
   db.ref('exam_scores').on('value',snap=>{S.exams=snap.val()||{};});
+  db.ref('payment_records').on('value',snap=>{renderPayments();});
   db.ref('app_configurations/group_bundles').on('value',snap=>{S.bundles=snap.val()||{};renderBundles();popBundleSelects();});
 }
 function initBadgeListeners(){
   db.ref('void_requests').on('value',snap=>{const p=Object.values(snap.val()||{}).filter(r=>r.status==='pending').length;const b=el('voidBadge');b.textContent=p;b.style.display=p>0?'flex':'none';});
   db.ref('recharge_requests').on('value',snap=>{const p=Object.values(snap.val()||{}).filter(r=>r.status==='pending').length;const b=el('rchBadge');b.textContent=p;b.style.display=p>0?'flex':'none';});
   db.ref('swap_requests').on('value',snap=>{const p=Object.values(snap.val()||{}).filter(r=>r.status==='pending').length;const b=el('swapBadge');b.textContent=p;b.style.display=p>0?'flex':'none';});
+  db.ref('payment_records').on('value',snap=>{const p=Object.values(snap.val()||{}).filter(r=>r.status==='pending').length;const b=el('payBadge');b.textContent=p;b.style.display=p>0?'flex':'none';});
 }
 
 /* ── STUDENT-IN-GROUP HELPER ── */
 // تتحقق من المجموعة الأولى والثانية معاً
 function studentInGroup(s, gid) {
-  if (s.group_reference === gid) return true;
+  if (s.group_reference   === gid) return true;
   if (s.group_reference_2 === gid) return true;
+  if (s.group_reference_3 === gid) return true;
   if (s.groups) {
     return Object.values(s.groups).some(g => g && g.key === gid);
   }
@@ -1126,13 +1251,17 @@ function renderLiveSessions(){
 /* ── SELECTS ── */
 function popGroupSelects(){
   const opts='<option value="">-- اختر --</option>'+Object.entries(S.groups).map(([id,g])=>`<option value="${id}">${g.title}</option>`).join('');
+  const opts2='<option value="">-- بدون --</option>'+Object.entries(S.groups).map(([id,g])=>`<option value="${id}">${g.title}</option>`).join('');
   ['st_group','blk_grp','wa_grp'].forEach(id=>{const s=el(id);if(s)s.innerHTML=opts;});
+  const sg2=el('st_group2');if(sg2)sg2.innerHTML=opts2;
   const stfg=el('stFgrp');if(stfg)stfg.innerHTML='<option value="">كل المجموعات</option>'+Object.entries(S.groups).map(([id,g])=>`<option value="${id}">${g.title}</option>`).join('');
   popBundleSelects();
 }
 function popBundleSelects(){
   const opts='<option value="">-- اختر --</option>'+Object.entries(S.groups).map(([id,g])=>`<option value="${id}">${g.title}${g.day?' — '+g.day:''}</option>`).join('');
+  const opts3='<option value="">-- بدون --</option>'+Object.entries(S.groups).map(([id,g])=>`<option value="${id}">${g.title}${g.day?' — '+g.day:''}</option>`).join('');
   ['bnd_g1','bnd_g2'].forEach(id=>{const s=el(id);if(s)s.innerHTML=opts;});
+  const s3=el('bnd_g3');if(s3)s3.innerHTML=opts3;
 }
 function popCenterSelects(){el('gp_center').innerHTML='<option value="">-- اختر --</option>'+Object.entries(S.centers).map(([id,c])=>`<option value="${id}">${c.name}</option>`).join('');}
 function popAssistantSelects(){el('gp_asst').innerHTML='<option value="">-- اختر --</option>'+Object.entries(S.assistants).map(([id,a])=>`<option value="${id}">${a.name}</option>`).join('');}
@@ -1146,32 +1275,87 @@ function populateAsstTrackerFilter(){const s=el('asstTrackFilter');if(s)s.innerH
 /* ── CENTERS ── */
 async function addCenter(){
   const name=el('cn_name').value.trim();if(!name){showFb('cnFb','اسم السنتر مطلوب','err');return;}
-  await db.ref('app_configurations/centers').push({name,address:el('cn_addr').value.trim(),phone:el('cn_phone').value.trim(),note:el('cn_note').value.trim(),created:Date.now()});
+  await db.ref('app_configurations/centers').push({name,address:el('cn_addr').value.trim(),phone:el('cn_phone').value.trim(),booking_fee:parseInt(el('cn_fee').value)||0,wallet_number:el('cn_transfer').value.trim(),note:el('cn_note').value.trim(),created:Date.now()});
   await logOp('center_add',`إضافة سنتر: ${name}`);
   showFb('cnFb',`✅ تم إضافة: ${name}`,'ok');toast(`تم إضافة ${name}`,'ok');
-  ['cn_name','cn_addr','cn_phone','cn_note'].forEach(id=>el(id).value='');
+  ['cn_name','cn_addr','cn_phone','cn_fee','cn_transfer','cn_note'].forEach(id=>el(id).value='');
 }
 function renderCenterList(){
   const e=el('cnList');if(!e)return;
   const list=Object.entries(S.centers);
   if(!list.length){e.innerHTML='<div class="empty-state"><i class="fa-solid fa-building"></i><p>لا توجد سناتر</p></div>';return;}
-  e.innerHTML=list.map(([cid,c])=>`<div class="row-card"><div class="rc-info"><div class="rc-name">${c.name}</div><div class="rc-meta">${c.address||'—'}${c.phone?' • '+c.phone:''}</div></div><div class="bic" onclick="delCenter('${cid}','${(c.name||'').replace(/'/g,'')}')"><i class="fa-solid fa-trash" style="color:var(--ro2)"></i></div></div>`).join('');
+  e.innerHTML=list.map(([cid,c])=>`<div class="row-card"><div class="rc-info"><div class="rc-name">${c.name}</div><div class="rc-meta">${c.address||'—'}${c.phone?' • '+c.phone:''}<br><span style="color:var(--in2);font-size:10.5px">قيمة الحجز: ${c.booking_fee||0} ج</span>${c.wallet_number?' • محفظة: '+c.wallet_number:''}</div></div><div class="bic" onclick="delCenter('${cid}','${(c.name||'').replace(/'/g,'')}')"><i class="fa-solid fa-trash" style="color:var(--ro2)"></i></div></div>`).join('');
 }
 async function delCenter(id,name){if(!confirm(`حذف "${name}"؟`))return;await db.ref(`app_configurations/centers/${id}`).remove();toast(`تم حذف ${name}`,'warn');}
 
 /* ── GROUPS ── */
 async function addGroup(){
   const title=el('gp_title').value.trim();if(!title){showFb('gpFb','اسم المجموعة مطلوب','err');return;}
-  await db.ref('app_configurations/groups').push({title,subject:el('gp_subj').value,stage:el('gp_stage').value,center_id:el('gp_center').value,assistant_id:el('gp_asst').value||null,day:el('gp_day').value,time:el('gp_time').value,max:parseInt(el('gp_max').value)||40,price:parseInt(el('gp_price').value)||0,created:Date.now()});
+  await db.ref('app_configurations/groups').push({title,subject:el('gp_subj').value,stage:el('gp_stage').value,center_id:el('gp_center').value,assistant_id:el('gp_asst').value||null,day:el('gp_day').value,time:el('gp_time').value,max:parseInt(el('gp_max').value)||40,price:parseInt(el('gp_price').value)||0,is_mandatory:el('gp_mandatory').checked||false,created:Date.now()});
   await logOp('group_add',`إضافة مجموعة: ${title}`);showFb('gpFb',`✅ تمت إضافة: ${title}`,'ok');toast(`تمت إضافة ${title}`,'ok');
 }
 function renderGroupsList(){
   const e=el('gpList');if(!e)return;
   const list=Object.entries(S.groups);
   if(!list.length){e.innerHTML='<div class="empty-state"><i class="fa-solid fa-layer-group"></i><p>لا توجد مجموعات</p></div>';return;}
-  e.innerHTML=list.map(([gid,g])=>{const cnt=Object.values(S.students).filter(s=>studentInGroup(s,gid)).length;const cName=S.centers[g.center_id]?.name||'—';const aName=S.assistants[g.assistant_id]?.name||'—';return`<div class="row-card"><div class="rc-info"><div class="rc-name">${g.title}</div><div class="rc-meta">${g.subject||'—'} • ${g.stage||'—'} • ${g.day||'—'} ${g.time||''}</div><div class="rc-meta" style="color:var(--t4);margin-top:2px">السنتر: ${cName} • المساعد: ${aName}</div></div><div style="display:flex;gap:7px;align-items:center;flex-shrink:0"><span class="b b-i">${cnt} طالب</span><div class="bic" onclick="delGroup('${gid}','${(g.title||'').replace(/'/g,'')}')"><i class="fa-solid fa-trash" style="color:var(--ro2)"></i></div></div></div>`;}).join('');
+  e.innerHTML=list.map(([gid,g])=>{
+    const cnt=Object.values(S.students).filter(s=>studentInGroup(s,gid)).length;
+    const cName=S.centers[g.center_id]?.name||'—';
+    const aName=S.assistants[g.assistant_id]?.name||'—';
+    const mandBadge=g.is_mandatory?'<span class="b b-r">إلزامي</span>':'';
+    return`<div class="row-card">
+      <div class="rc-info">
+        <div class="rc-name">${g.title}</div>
+        <div class="rc-meta">${g.subject||'—'} • ${g.stage||'—'} • ${g.day||'—'} ${g.time||''}</div>
+        <div class="rc-meta" style="color:var(--t4);margin-top:2px">السنتر: ${cName} • المساعد: ${aName} • الحد: ${g.max_students||'—'} ${mandBadge}</div>
+      </div>
+      <div style="display:flex;gap:7px;align-items:center;flex-shrink:0">
+        <span class="b b-i">${cnt} طالب</span>
+        <div class="bic" onclick="openEditGrp('${gid}')"><i class="fa-solid fa-pen" style="color:var(--in2)"></i></div>
+        <div class="bic" onclick="delGroup('${gid}','${(g.title||'').replace(/'/g,'')}')"><i class="fa-solid fa-trash" style="color:var(--ro2)"></i></div>
+      </div>
+    </div>`;
+  }).join('');
 }
 async function delGroup(id,name){if(!confirm(`حذف "${name}"؟`))return;await db.ref(`app_configurations/groups/${id}`).remove();toast(`تم حذف ${name}`,'warn');}
+
+function openEditGrp(gid){
+  const g=S.groups[gid];if(!g)return;
+  el('egFid').value=gid;
+  el('eg_title').value=g.title||'';
+  el('eg_subj').value=g.subject||'';
+  el('eg_stage').value=g.stage||'';
+  el('eg_day').value=g.day||'';
+  el('eg_time').value=g.time||'';
+  el('eg_max').value=g.max_students||40;
+  el('eg_price').value=g.price||0;
+  el('eg_mandatory').checked=g.is_mandatory||false;
+  // السنتر والمساعد
+  el('eg_center').innerHTML='<option value="">-- اختر --</option>'+Object.entries(S.centers).map(([id,c])=>`<option value="${id}"${g.center_id===id?' selected':''}>${c.name}</option>`).join('');
+  el('eg_asst').innerHTML='<option value="">-- اختر --</option>'+Object.entries(S.assistants).map(([id,a])=>`<option value="${id}"${g.assistant_id===id?' selected':''}>${a.name}</option>`).join('');
+  openM('M_editGrp');
+}
+async function saveEditGrp(){
+  const gid=el('egFid').value;
+  const maxVal=parseInt(el('eg_max').value)||40;
+  const d={
+    title      : el('eg_title').value.trim(),
+    subject    : el('eg_subj').value,
+    stage      : el('eg_stage').value,
+    day        : el('eg_day').value,
+    time       : el('eg_time').value,
+    max        : maxVal,
+    max_students: maxVal,
+    price      : parseInt(el('eg_price').value)||0,
+    center_id  : el('eg_center').value||null,
+    assistant_id: el('eg_asst').value||null,
+    is_mandatory: el('eg_mandatory').checked||false
+  };
+  if(!d.title){toast('اسم المجموعة مطلوب','err');return;}
+  await db.ref(`app_configurations/groups/${gid}`).update(d);
+  await logOp('group_edit',`تعديل مجموعة: ${d.title}`);
+  closeM('M_editGrp');toast('تم حفظ التعديلات','ok');
+}
 
 /* ── ASSISTANTS ── */
 async function addAssistant(){
@@ -1197,7 +1381,14 @@ async function addStudent(){
   const uid=getNextUIDSequential();
   if(Object.values(S.students).some(s=>s.uid===uid)){showFb('stFb','UID موجود — تحديث','err');refreshNextUID();return;}
   const ref=db.ref('students_directory').push();
-  await ref.set({uid,name,parent_phone:el('st_pph').value.trim(),student_phone:el('st_sph').value.trim(),group_reference:el('st_group').value||null,grade:el('st_grade').value,gender:el('st_gender').value,wallet_balance:parseInt(el('st_bal').value)||1,registration_date:new Date().toISOString().slice(0,10),status:el('st_status').value||'active'});
+  const grp1=el('st_group').value||null;
+  const grp2=el('st_group2').value||null;
+  const grp1Title=grp1?S.groups[grp1]?.title||null:null;
+  const grp2Title=grp2?S.groups[grp2]?.title||null:null;
+  const groups={};
+  if(grp1)groups.group_1={key:grp1,title:grp1Title};
+  if(grp2)groups.group_2={key:grp2,title:grp2Title};
+  await ref.set({uid,name,parent_phone:el('st_pph').value.trim(),student_phone:el('st_sph').value.trim(),group_reference:grp1,group_title:grp1Title,group_reference_2:grp2||null,group_title_2:grp2Title||null,groups:Object.keys(groups).length?groups:null,grade:el('st_grade').value,gender:el('st_gender').value,wallet_balance:parseInt(el('st_bal').value)||1,registration_date:new Date().toISOString().slice(0,10),status:el('st_status').value||'active'});
   await logOp('student_add',`إضافة طالب: ${name} (${uid})`);
   await pushNotif('student',`طالب جديد: ${name} — ${uid}`,'fa-user-plus','var(--in2)');
   showFb('stFb',`✅ تم — UID: ${uid}`,'ok');toast(`تم إضافة ${name}`,'ok');
@@ -1330,6 +1521,48 @@ async function submitRjSwap(){
   closeM('M_rjSwap');toast('تم الرفض','warn');renderSwaps();renderSwapHist();
 }
 
+/* ── PAYMENTS ── */
+function renderPayments(){
+  db.ref('payment_records').once('value',snap=>{
+    const list=snap.val()||{};const e=el('payList');const hist=el('payHist');
+    const pending=Object.entries(list).filter(([,r])=>r.status==='pending');
+    if(!pending.length){e.innerHTML='<div class="empty-state">✅ لا توجد طلبات دفع معلقة</div>';}
+    else{e.innerHTML=pending.map(([id,r])=>buildPayCard(id,r)).join('');}
+    const done=Object.entries(list).filter(([,r])=>r.status!=='pending').sort(([,a],[,b])=>(b.timestamp||0)-(a.timestamp||0));
+    hist.innerHTML=done.slice(0,20).map(([id,r])=>buildPayCard(id,r,true)).join('');
+  });
+}
+function buildPayCard(id,r,isHist=false){
+  const st=r.status==='approved'?'pay-status-approved':'pay-status-rejected';
+  return `<div class="pay-card">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between">
+      <div style="flex:1">
+        <div style="font-weight:800">${r.student_name} (${r.student_uid}) <span class="pay-status ${st}">${r.status}</span></div>
+        <div style="font-size:11px;color:var(--t2)">${r.center_name} • ${r.amount} ج • ${new Date(r.timestamp).toLocaleString('ar-EG')}</div>
+        ${r.screenshot_url?`<div style="margin-top:8px"><img src="${r.screenshot_url}" class="pay-screenshot" onclick="window.open('${r.screenshot_url}','_blank')"></div>`:''}
+        ${!isHist && r.status==='pending'?`
+        <div style="margin-top:10px;display:flex;gap:8px">
+          <button class="btn btn-e btn-sm" onclick="approvePay('${id}')">قبول</button>
+          <button class="btn btn-r btn-sm" onclick="openRjPay('${id}')">رفض</button>
+        </div>`:''}
+      </div>
+    </div>
+  </div>`;
+}
+async function approvePay(id){
+  const snap=await db.ref(`payment_records/${id}`).once('value');const r=snap.val();if(!r)return;
+  await db.ref(`payment_records/${id}`).update({status:'approved',approved_at:Date.now()});
+  const entry=Object.entries(S.students).find(([,s])=>s.uid===r.student_uid);
+  if(entry) await db.ref(`students_directory/${entry[0]}/wallet_balance`).transaction(b=>(b||0)+1);
+  await logOp('payment_approved',`دفع مقبول: ${r.student_name}`);toast('تم القبول','ok');renderPayments();
+}
+function openRjPay(id){el('rjPayId').value=id;openM('M_rjPay');}
+async function submitRjPay(){
+  const id=el('rjPayId').value;const rsn=el('rjPayRsn').value;
+  await db.ref(`payment_records/${id}`).update({status:'rejected',reject_reason:rsn,rejected_at:Date.now()});
+  toast('تم الرفض','warn');closeM('M_rjPay');renderPayments();
+}
+
 /* ═══ SESSIONS — Enhanced with Edit ═══ */
 function renderSessions(){
   const e=el('sessListEl');if(!e)return;
@@ -1434,9 +1667,35 @@ async function toggleSessionStatus(){
 }
 async function saveSessionEdits(){
   const sid=el('edSessId').value;
-  await db.ref(`attendance_sessions/${sid}/attended`).set(Object.keys(_editSessData).length?_editSessData:null);
-  await logOp('session_edit',`تعديل حضور جلسة: ${S.sessions[sid]?.groupTitle||'—'}`);
-  toast('تم حفظ تعديلات الجلسة','ok');
+  const s=S.sessions[sid];
+  const prevAttended=s.attended||{};
+
+  // الحضور الجديد
+  const newAttended=Object.keys(_editSessData).length?_editSessData:null;
+  await db.ref(`attendance_sessions/${sid}/attended`).set(newAttended);
+
+  // خصم حصة واحدة من كل طالب حضر لأول مرة (لم يكن موجوداً في الحضور السابق)
+  const deductUpdates={};
+  for(const fid of Object.keys(_editSessData)){
+    if(!prevAttended[fid]){
+      // طالب حضر جديد — خصم حصة
+      const bal=S.students[fid]?.wallet_balance||0;
+      if(bal>0) deductUpdates[`students_directory/${fid}/wallet_balance`]=bal-1;
+    }
+  }
+  // إعادة حصة لمن تم حذفه من الحضور
+  for(const fid of Object.keys(prevAttended)){
+    if(!_editSessData[fid]){
+      const bal=S.students[fid]?.wallet_balance||0;
+      deductUpdates[`students_directory/${fid}/wallet_balance`]=bal+1;
+    }
+  }
+  if(Object.keys(deductUpdates).length){
+    await db.ref().update(deductUpdates);
+  }
+
+  await logOp('session_edit',`تعديل حضور جلسة: ${s?.groupTitle||'—'}`);
+  toast('تم حفظ الحضور وتحديث الأرصدة','ok');
   closeM('M_editSess');
 }
 
@@ -1726,35 +1985,103 @@ async function confirmDel(){if(el('delConfirm').value!=='DELETE'){toast('اكت�
 
 /* ── BUNDLES ── */
 async function addBundle(){
-  const g1=el('bnd_g1').value,g2=el('bnd_g2').value;
-  if(!g1||!g2){showFb('bndFb','اختر مجموعتين','err');return;}
-  if(g1===g2){showFb('bndFb','لا يمكن ربط مجموعة بنفسها','err');return;}
-  const exists=Object.values(S.bundles).some(b=>(b.group1_id===g1&&b.group2_id===g2)||(b.group1_id===g2&&b.group2_id===g1));
-  if(exists){showFb('bndFb','هذا الزوج موجود بالفعل','err');return;}
-  const g1Name=S.groups[g1]?.title||g1,g2Name=S.groups[g2]?.title||g2;
-  await db.ref('app_configurations/group_bundles').push({group1_id:g1,group2_id:g2,group1_title:g1Name,group2_title:g2Name,created:Date.now()});
-  await logOp('bundle_add',`ربط مجموعات: ${g1Name} + ${g2Name}`);
-  showFb('bndFb',`✅ تم ربط: ${g1Name} + ${g2Name}`,'ok');
-  toast(`تم الربط: ${g1Name} + ${g2Name}`,'ok');
-  el('bnd_g1').value='';el('bnd_g2').value='';
+  const g1=el('bnd_g1').value, g2=el('bnd_g2').value, g3=el('bnd_g3').value;
+  const name=el('bnd_name').value.trim();
+  if(!g1||!g2){showFb('bndFb','اختر مجموعتين على الأقل','err');return;}
+  const ids=[g1,g2,...(g3?[g3]:[])];
+  if(new Set(ids).size!==ids.length){showFb('bndFb','لا يمكن تكرار نفس المجموعة','err');return;}
+  // تحقق من عدم وجود bundle مكرر بنفس المجموعات
+  const idsSorted=ids.slice().sort().join('|');
+  const dup=Object.values(S.bundles).some(b=>{
+    const bIds=(b.group_ids||[b.group1_id,b.group2_id].filter(Boolean)).slice().sort().join('|');
+    return bIds===idsSorted;
+  });
+  if(dup){showFb('bndFb','هذا الـ bundle موجود بالفعل','err');return;}
+  const titles=ids.map(id=>S.groups[id]?.title||id);
+  await db.ref('app_configurations/group_bundles').push({
+    name: name||titles.join(' + '),
+    group_ids: ids,
+    group_titles: titles,
+    size: ids.length,
+    // توافق مع الهيكل القديم
+    group1_id:g1, group2_id:g2, group3_id:g3||null,
+    group1_title:titles[0], group2_title:titles[1], group3_title:titles[2]||null,
+    created:Date.now()
+  });
+  await logOp('bundle_add',`ربط مجموعات: ${titles.join(' + ')}`);
+  showFb('bndFb',`✅ تم إنشاء bundle: ${name||titles.join(' + ')}`,'ok');
+  toast('تم إنشاء الـ Bundle','ok');
+  el('bnd_g1').value='';el('bnd_g2').value='';el('bnd_g3').value='';el('bnd_name').value='';
 }
+
 function renderBundles(){
   const e=el('bndList');if(!e)return;
   const list=Object.entries(S.bundles);
-  if(!list.length){e.innerHTML='<div class="empty-state" style="padding:14px 0"><i class="fa-solid fa-link" style="opacity:.13;font-size:22px;display:block;margin-bottom:8px"></i><p style="font-size:12px">لا توجد أزواج محددة — الطلاب يختارون أي مجموعتين</p></div>';return;}
-  e.innerHTML=`<div style="font-size:11px;font-weight:800;color:var(--t3);margin-bottom:9px;letter-spacing:.5px">الأزواج المسموح بها</div>`+list.map(([bid,b])=>
-    `<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 13px;background:var(--c3);border:1px solid var(--emb);border-radius:11px;margin-bottom:7px">
-      <div style="display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:700">
-        <span style="color:var(--em2)">${b.group1_title||b.group1_id}</span>
-        <i class="fa-solid fa-link" style="color:var(--t4);font-size:10px"></i>
-        <span style="color:var(--in2)">${b.group2_title||b.group2_id}</span>
+  if(!list.length){
+    e.innerHTML='<div class="empty-state" style="padding:14px 0"><i class="fa-solid fa-link" style="opacity:.13;font-size:22px;display:block;margin-bottom:8px"></i><p style="font-size:12px">لا توجد bundles — الطلاب يختارون بحرية</p></div>';
+    return;
+  }
+  e.innerHTML=`<div style="font-size:11px;font-weight:800;color:var(--t3);margin-bottom:9px;letter-spacing:.5px">الـ Bundles المحددة</div>`
+  +list.map(([bid,b])=>{
+    const ids=b.group_ids||[b.group1_id,b.group2_id,b.group3_id].filter(Boolean);
+    const titles=b.group_titles||ids.map(id=>S.groups[id]?.title||id);
+    const size=ids.length;
+    const colors=['var(--em2)','var(--in2)','var(--am2)'];
+    return`<div style="background:var(--c3);border:1px solid var(--emb);border-radius:12px;padding:11px 13px;margin-bottom:8px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+        <div style="flex:1">
+          <div style="font-size:12px;font-weight:800;color:var(--t1);margin-bottom:7px">
+            <i class="fa-solid fa-link" style="color:var(--em2);margin-left:5px;font-size:10px"></i>
+            ${b.name||titles.join(' + ')}
+            <span class="b ${size===3?'b-a':'b-e'}" style="font-size:9.5px;margin-right:6px">${size} مجموعات</span>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px">
+            ${titles.map((t,i)=>`<span style="background:rgba(59,130,246,0.07);border:1px solid var(--b1);border-radius:8px;padding:3px 9px;font-size:11px;font-weight:700;color:${colors[i]||'var(--t2)'}">${t}</span>`).join('')}
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0">
+          <div class="bic" onclick="openEditBundle('${bid}')"><i class="fa-solid fa-pen" style="color:var(--in2)"></i></div>
+          <div class="bic" onclick="delBundle('${bid}','${(b.name||'').replace(/'/g,'')}')"><i class="fa-solid fa-trash" style="color:var(--ro2)"></i></div>
+        </div>
       </div>
-      <div class="bic" onclick="delBundle('${bid}','${(b.group1_title||'').replace(/'/g,'')}','${(b.group2_title||'').replace(/'/g,'')}')">
-        <i class="fa-solid fa-trash" style="color:var(--ro2)"></i>
-      </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
-async function delBundle(bid,g1,g2){if(!confirm(`حذف ربط "${g1} + ${g2}"؟`))return;await db.ref(`app_configurations/group_bundles/${bid}`).remove();toast('تم حذف الربط','warn');}
+
+function openEditBundle(bid){
+  const b=S.bundles[bid];if(!b)return;
+  el('ebFid').value=bid;
+  el('eb_name').value=b.name||'';
+  const ids=b.group_ids||[b.group1_id,b.group2_id,b.group3_id].filter(Boolean);
+  const opts='<option value="">-- اختر --</option>'+Object.entries(S.groups).map(([id,g])=>`<option value="${id}">${g.title}${g.day?' — '+g.day:''}</option>`).join('');
+  const opts3='<option value="">-- بدون --</option>'+Object.entries(S.groups).map(([id,g])=>`<option value="${id}">${g.title}${g.day?' — '+g.day:''}</option>`).join('');
+  el('eb_g1').innerHTML=opts; el('eb_g1').value=ids[0]||'';
+  el('eb_g2').innerHTML=opts; el('eb_g2').value=ids[1]||'';
+  el('eb_g3').innerHTML=opts3; el('eb_g3').value=ids[2]||'';
+  openM('M_editBundle');
+}
+async function saveEditBundle(){
+  const bid=el('ebFid').value;
+  const g1=el('eb_g1').value, g2=el('eb_g2').value, g3=el('eb_g3').value;
+  const name=el('eb_name').value.trim();
+  if(!g1||!g2){toast('اختر مجموعتين على الأقل','err');return;}
+  const ids=[g1,g2,...(g3?[g3]:[])];
+  if(new Set(ids).size!==ids.length){toast('لا يمكن تكرار نفس المجموعة','err');return;}
+  const titles=ids.map(id=>S.groups[id]?.title||id);
+  await db.ref(`app_configurations/group_bundles/${bid}`).update({
+    name:name||titles.join(' + '),
+    group_ids:ids, group_titles:titles, size:ids.length,
+    group1_id:g1, group2_id:g2, group3_id:g3||null,
+    group1_title:titles[0], group2_title:titles[1], group3_title:titles[2]||null
+  });
+  await logOp('bundle_edit',`تعديل bundle: ${name||titles.join(' + ')}`);
+  closeM('M_editBundle');toast('تم حفظ التعديلات','ok');
+}
+async function delBundle(bid,name){
+  if(!confirm(`حذف bundle "${name}"؟`))return;
+  await db.ref(`app_configurations/group_bundles/${bid}`).remove();
+  toast('تم حذف الـ Bundle','warn');
+}
 
 /* ── BOOTSTRAP ── */
 if(sessionStorage.getItem('bs_adm')){el('login').style.display='none';el('APP').style.display='block';initApp();}
