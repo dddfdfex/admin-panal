@@ -15,11 +15,11 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --bg:#05060D;--c1:#080A14;--c2:#0D0F1C;--c3:#121526;--c4:#181B2E;--c5:#1E2238;
-  --b1:#1C2038;--b2:#252A46;--b3:#333A5E;
-  --t1:#F2F4FF;--t2:#9BA8CC;--t3:#5A6490;--t4:#2C3260;
-  --in:#6366F1;--in2:#818CF8;--in3:#A5B4FC;
-  --ing:rgba(99,102,241,.12);--inb:rgba(99,102,241,.28);
+  --bg:#1a0f00;--c1:#251500;--c2:rgba(25, 15, 0, 0.9);--c3:rgba(35, 20, 0, 0.85);--c4:rgba(45, 25, 0, 0.8);--c5:rgba(55, 30, 0, 0.8);
+  --b1:rgba(255, 255, 255, 0.1);--b2:rgba(255, 255, 255, 0.15);--b3:rgba(255, 255, 255, 0.2);
+  --t1:#ffffff;--t2:#bdc3c7;--t3:#94a3b8;--t4:#5A6490;
+  --in:#f39c12;--in2:#e67e22;--in3:#ffb74d;
+  --ing:rgba(243, 156, 18, 0.12);--inb:rgba(243, 156, 18, 0.28);
   --em:#10B981;--em2:#34D399;--em3:#6EE7B7;
   --emg:rgba(16,185,129,.10);--emb:rgba(16,185,129,.24);
   --ro:#F43F5E;--ro2:#FB7185;
@@ -36,8 +36,43 @@
 }
 html,body{font-family:'Cairo','Tajawal',sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;overflow-x:hidden}
 body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
-  background:radial-gradient(ellipse 70% 55% at 5% 0%,rgba(99,102,241,.07),transparent 55%),
-  radial-gradient(ellipse 50% 45% at 95% 100%,rgba(16,185,129,.05),transparent 50%)}
+  background: radial-gradient(circle at 20% 30%, #FF9800, transparent 65%),
+              radial-gradient(circle at 80% 70%, #E65100, transparent 55%);
+  opacity: 0.4;
+  z-index: -2;}
+
+@keyframes float-around {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  33% { transform: translate(30px, -50px) rotate(120deg); }
+  66% { transform: translate(-20px, 20px) rotate(240deg); }
+  100% { transform: translate(0, 0) rotate(360deg); }
+}
+@keyframes move-forever {
+  0% { transform: translate3d(-90px, 0, 0); }
+  100% { transform: translate3d(85px, 0, 0); }
+}
+.waves {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 15vh;
+  min-height: 100px;
+  max-height: 150px;
+  z-index: -1;
+  pointer-events: none;
+}
+.parallax > use {
+  animation: move-forever 25s cubic-bezier(.55,.5,.45,.5) infinite;
+}
+.floating-obj {
+  position: fixed;
+  color: rgba(243, 156, 18, 0.12);
+  font-size: clamp(1.5rem, 6vw, 3.5rem);
+  z-index: -1;
+  pointer-events: none;
+  animation: float-around 25s linear infinite alternate;
+}
 
 /* ══ SPLASH ══ */
 #splash{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;transition:opacity .6s .3s,visibility .6s .3s}
@@ -357,6 +392,29 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
 </head>
 <body>
 <div id="TC"></div>
+
+<!-- Floating Background Icons -->
+<div class="floating-obj" style="top: 10%; left: 5%; animation-duration: 20s;"><i class="fa-solid fa-pen-nib"></i></div>
+<div class="floating-obj" style="top: 25%; right: 10%; animation-duration: 35s; animation-delay: -5s;"><i class="fa-solid fa-book"></i></div>
+<div class="floating-obj" style="top: 50%; left: 15%; animation-duration: 28s;"><i class="fa-solid fa-pencil"></i></div>
+<div class="floating-obj" style="bottom: 20%; right: 5%; animation-duration: 40s; animation-delay: -10s;"><i class="fa-solid fa-book-open"></i></div>
+<div class="floating-obj" style="bottom: 40%; left: 20%; animation-duration: 22s;"><i class="fa-solid fa-graduation-cap"></i></div>
+<div class="floating-obj" style="top: 60%; right: 25%; animation-duration: 32s;"><i class="fa-solid fa-note-sticky"></i></div>
+
+<!-- Live Waves -->
+<svg class="waves" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+viewBox="0 24 150 28" preserveAspectRatio="none" shape-rendering="auto">
+<defs>
+<path id="gentle-wave" d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z" />
+</defs>
+<g class="parallax">
+<use xlink:href="#gentle-wave" x="48" y="0" fill="rgba(255, 183, 77, 0.3)" />
+<use xlink:href="#gentle-wave" x="48" y="3" fill="rgba(230, 81, 0, 0.4)" />
+<use xlink:href="#gentle-wave" x="48" y="5" fill="rgba(255, 183, 77, 0.2)" />
+<use xlink:href="#gentle-wave" x="48" y="7" fill="rgba(230, 81, 0, 0.2)" />
+</g>
+</svg>
+
 <div id="splash">
   <div class="sp-box">
     <div class="sp-logo-ring"><img src="logo.jpg" class="sp-logo" alt="" onerror="this.parentElement.innerHTML='<i class=\'fa-solid fa-graduation-cap\' style=\'font-size:44px;color:var(--in2)\'></i>'"></div>
@@ -579,7 +637,7 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
             <div class="fw"><label class="Fl">النوع</label><select id="st_gender" class="F"><option value="">-- اختر --</option><option>ذكر</option><option>أنثى</option></select></div>
             <div class="fw"><label class="Fl">هاتف الطالب</label><input id="st_sph" class="F" placeholder="01xxxxxxxxx"></div>
             <div class="fw"><label class="Fl">هاتف ولي الأمر (واتساب) *</label><input id="st_pph" class="F" placeholder="01xxxxxxxxx"></div>
-            <div class="fw"><label class="Fl">الرصيد الافتتاحي</label><input id="st_bal" class="F" type="number" value="12" min="0"></div>
+            <div class="fw"><label class="Fl">الرصيد الافتتاحي</label><input id="st_bal" class="F" type="number" value="1" min="0"></div>
             <div class="fw"><label class="Fl">الحالة</label><select id="st_status" class="F"><option value="active">نشط</option><option value="suspended">موقوف</option><option value="pending">قيد الانتظار</option><option value="frozen">مجمد</option><option value="graduated">متخرج</option></select></div>
           </div>
           <button class="btn btn-e btn-sm" style="margin-top:13px" onclick="addStudent()"><i class="fa-solid fa-plus"></i> إضافة الطالب</button>
@@ -1395,7 +1453,10 @@ async function addStudent(){
   const groups={};
   if(grp1)groups.group_1={key:grp1,title:grp1Title};
   if(grp2)groups.group_2={key:grp2,title:grp2Title};
-  await ref.set({uid,name,parent_phone:el('st_pph').value.trim(),student_phone:el('st_sph').value.trim(),group_reference:grp1,group_title:grp1Title,group_reference_2:grp2||null,group_title_2:grp2Title||null,groups:Object.keys(groups).length?groups:null,grade:el('st_grade').value,gender:el('st_gender').value,wallet_balance:parseInt(el('st_bal').value)||12,registration_date:new Date().toISOString().slice(0,10),status:el('st_status').value||'active'});
+  const initBal=parseInt(el('st_bal').value)||0;
+  const isPaid=initBal>0;
+  const finalBal=isPaid?12:0;
+  await ref.set({uid,name,parent_phone:el('st_pph').value.trim(),student_phone:el('st_sph').value.trim(),group_reference:grp1,group_title:grp1Title,group_reference_2:grp2||null,group_title_2:grp2Title||null,groups:Object.keys(groups).length?groups:null,grade:el('st_grade').value,gender:el('st_gender').value,wallet_balance:finalBal,registration_date:new Date().toISOString().slice(0,10),status:isPaid?'active':(el('st_status').value||'active'),paid_amount:initBal,registered_by:'admin'});
   await logOp('student_add',`إضافة طالب: ${name} (${uid})`);
   await pushNotif('student',`طالب جديد: ${name} — ${uid}`,'fa-user-plus','var(--in2)');
   showFb('stFb',`✅ تم — UID: ${uid}`,'ok');toast(`تم إضافة ${name}`,'ok');
@@ -1496,33 +1557,33 @@ async function approveSwap(id){
   const entry=Object.entries(S.students).find(([,s])=>s.uid===r.student_uid);
   if(!entry){toast('لم يتم العثور على الطالب','err');return;}
   const [fid,student]=entry;
-  
-  // تحديد slot التبديل: 1 أو 2 أو 3 بناءً على from_group_index
-  const fromIndex=String(r.from_group_index||r.from_slot||'1');
+  const slot=r.from_slot||'1';
   const updates={};
-  
-  // حذف المجموعة القديمة وإضافة الجديدة في slot المناسب
-  if(fromIndex==='1'||fromIndex==='0'){
+
+  if(slot==='1'){
+    // تحديث group_reference الأول وكائن groups.group_1
     updates[`students_directory/${fid}/group_reference`]=r.to_group_key;
     updates[`students_directory/${fid}/group_title`]=r.to_group_title;
-    if(student.groups?.group_1) updates[`students_directory/${fid}/groups/group_1`]={key:r.to_group_key,title:r.to_group_title};
-  } else if(fromIndex==='2'){
+    updates[`students_directory/${fid}/groups/group_1`]={key:r.to_group_key,title:r.to_group_title};
+  } else if(slot==='2'){
+    // تحديث group_reference الثاني وكائن groups.group_2
     updates[`students_directory/${fid}/group_reference_2`]=r.to_group_key;
     updates[`students_directory/${fid}/group_title_2`]=r.to_group_title;
-    if(student.groups?.group_2) updates[`students_directory/${fid}/groups/group_2`]={key:r.to_group_key,title:r.to_group_title};
-  } else if(fromIndex==='3'){
+    updates[`students_directory/${fid}/groups/group_2`]={key:r.to_group_key,title:r.to_group_title};
+  } else if(slot==='3'){
     updates[`students_directory/${fid}/group_reference_3`]=r.to_group_key;
     updates[`students_directory/${fid}/group_title_3`]=r.to_group_title;
-    if(student.groups?.group_3) updates[`students_directory/${fid}/groups/group_3`]={key:r.to_group_key,title:r.to_group_title};
+    updates[`students_directory/${fid}/groups/group_3`]={key:r.to_group_key,title:r.to_group_title};
   }
-  
+
   updates[`swap_requests/${id}/status`]='approved';
   updates[`swap_requests/${id}/approved_at`]=Date.now();
   await db.ref().update(updates);
-  await pushNotif('swap_approved',`تم قبول تبديل: ${r.student_name} — من ${r.from_group_title} إلى ${r.to_group_title}`,'fa-right-left','var(--em2)');
+  await pushNotif('swap_approved',`تم قبول تبديل: ${r.student_name} → ${r.to_group_title}`,'fa-right-left','var(--em2)');
   await logOp('swap_approved',`قبول تبديل ${r.student_name}: ${r.from_group_title} → ${r.to_group_title}`);
+  // واتساب تأكيد للطالب
   const ph=(r.student_phone||'').replace(/\D/g,'');const iph=ph.startsWith('0')?'2'+ph:ph;
-  if(iph){const msg=encodeURIComponent(`مرحباً ${r.student_name}، تم قبول طلب تبديل مجموعتك (${r.ticket_num||r.request_number}) من "${r.from_group_title}" إلى "${r.to_group_title}" بنجاح. مع تحيات الإدارة.`);window.open(`https://wa.me/${iph}?text=${msg}`,'_blank');}
+  if(iph){const msg=encodeURIComponent(`مرحباً ${r.student_name}، تم قبول طلب تبديل مجموعتك (${r.request_number}) من "${r.from_group_title}" إلى "${r.to_group_title}" بنجاح. مع تحيات الإدارة.`);window.open(`https://wa.me/${iph}?text=${msg}`,'_blank');}
   toast(`تم قبول تبديل ${r.student_name}`,'ok');renderSwaps();renderSwapHist();
 }
 function openRjSwap(id){el('rjSwapId').value=id;el('rjSwapRsn').value='';openM('M_rjSwap');}
@@ -1566,11 +1627,18 @@ function buildPayCard(id,r,isHist=false){
 }
 async function approvePay(id){
   const snap=await db.ref(`payment_records/${id}`).once('value');const r=snap.val();if(!r)return;
-  await db.ref(`payment_records/${id}`).update({status:'approved',approved_at:Date.now()});
+  await db.ref(`payment_records/${id}`).update({status:'approved',approved_at:Date.now(),approved_by:'admin'});
+  // إيجاد الطالب وتحديث رصيده إلى 12 حصة + تفعيل حسابه
   const entry=Object.entries(S.students).find(([,s])=>s.uid===r.student_uid);
-  if(entry) await db.ref(`students_directory/${entry[0]}/wallet_balance`).transaction(b=>(b||0)+12);
-  await db.ref(`students_directory/${entry[0]}/status`).set('active');
-  await logOp('payment_approved',`دفع مقبول: ${r.student_name} — تم إضافة 12 حصة`);toast('تم القبول وإضافة 12 حصة','ok');renderPayments();
+  if(entry){
+    await db.ref(`students_directory/${entry[0]}`).update({
+      wallet_balance: 12,
+      status: 'active'
+    });
+  }
+  await logOp('payment_approved',`دفع مقبول: ${r.student_name} — 12 حصة`);
+  await pushNotif('payment_approved',`تم قبول دفع: ${r.student_name} (${r.student_uid}) — 12 حصة مضافة`,'fa-money-bill-transfer','var(--em2)');
+  toast('تم القبول وإضافة 12 حصة','ok');renderPayments();
 }
 function openRjPay(id){el('rjPayId').value=id;openM('M_rjPay');}
 async function submitRjPay(){
